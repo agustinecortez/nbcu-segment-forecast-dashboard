@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design system — NBCU Segment Forecast Dashboard
+   Spec: Section 5-6, NBCU_Dashboard_Build_Spec.md
+───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Backgrounds */
+  --color-bg-primary: #FAFAF7;
+  --color-bg-card: #FFFFFF;
+  --color-bg-subtle: #F4F4F0;
+
+  /* Text */
+  --color-text-primary: #1A1B2E;
+  --color-text-secondary: #5C5F75;
+  --color-text-tertiary: #8A8DA5;
+
+  /* Brand / primary */
+  --color-primary: #241E4E;
+  --color-primary-hover: #332A6B;
+  --color-accent: #E8A33D;
+  --color-accent-subtle: #FBEBD2;
+
+  /* Segment colors */
+  --color-media: #5B4B96;
+  --color-studios: #C97B3B;
+  --color-themeparks: #2E8B7A;
+
+  /* Borders */
+  --color-border: #E5E5E0;
+  --color-border-strong: #C5C5BE;
+
+  /* Status */
+  --color-positive: #2D7A47;
+  --color-negative: #9C3838;
+
+  /* Estimate / flagged-assumption badge */
+  --color-estimate-bg: #FDF3E0;
+  --color-estimate-text: #9A6A1A;
+  --color-estimate-border: #E8CB93;
+}
+
+@theme inline {
+  --color-background: var(--color-bg-primary);
+  --color-foreground: var(--color-text-primary);
+  /* System sans-serif stack — no web font required */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+
+html {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Tabular numbers for financial tables/cards ──────────────────────────── */
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+
+.card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+/* ── Slider — custom track/thumb styling ─────────────────────────────────── */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border-strong);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--color-primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--color-primary);
+  cursor: pointer;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  background: var(--color-primary-hover);
+}
+
+/* ── Scrollbar (webkit) — subtle ─────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}

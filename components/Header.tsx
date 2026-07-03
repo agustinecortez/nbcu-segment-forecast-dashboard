@@ -1,10 +1,19 @@
 "use client";
 
+import { Info, GitBranch, RotateCcw } from "lucide-react";
+import { NBCU_CONFIG } from "@/lib/nbcuData";
+
 interface HeaderProps {
+  onAboutOpen: () => void;
   onReset: () => void;
 }
 
-export default function Header({ onReset }: HeaderProps) {
+export default function Header({ onAboutOpen, onReset }: HeaderProps) {
+  const buttonStyle = {
+    color: "rgba(255,255,255,0.85)",
+    backgroundColor: "rgba(255,255,255,0.1)",
+  };
+
   return (
     <header
       className="sticky top-0 z-40 w-full border-b flex items-center justify-between px-4 sm:px-6"
@@ -25,15 +34,43 @@ export default function Header({ onReset }: HeaderProps) {
         </span>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <button
+          onClick={onAboutOpen}
+          className="flex items-center gap-1.5 text-sm px-2.5 sm:px-3 py-1.5 rounded transition-colors"
+          style={buttonStyle}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
+          aria-label="About this dashboard"
+        >
+          <Info size={14} />
+          <span className="hidden sm:inline">About</span>
+        </button>
+
+        <a
+          href={NBCU_CONFIG.githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-sm px-2.5 sm:px-3 py-1.5 rounded transition-colors"
+          style={buttonStyle}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
+          aria-label="View source on GitHub"
+        >
+          <GitBranch size={14} />
+          <span className="hidden sm:inline">GitHub</span>
+        </a>
+
         <button
           onClick={onReset}
-          className="text-sm px-3 py-1.5 rounded transition-colors font-medium"
+          className="flex items-center gap-1.5 text-sm px-2.5 sm:px-3 py-1.5 rounded transition-colors font-medium"
           style={{ color: "var(--color-primary)", backgroundColor: "#ffffff" }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-accent-subtle)")}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+          aria-label="Reset all drivers to default values"
         >
-          Reset All
+          <RotateCcw size={14} />
+          <span className="hidden sm:inline">Reset</span>
         </button>
       </div>
     </header>

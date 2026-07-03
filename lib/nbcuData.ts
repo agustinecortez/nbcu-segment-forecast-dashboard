@@ -286,6 +286,23 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       step: 0.5,
       estimateFlag: true,
     },
+    {
+      id: "epicLaunchCostRollOff",
+      label: "Epic Universe Launch-Cost Roll-Off",
+      description:
+        "Margin compressed ~2.9 points year over year in fiscal year 2025 (34.2% to 31.3%) despite " +
+        "14.2% revenue growth, driven by Epic Universe's launch-year cost load (marketing, staffing " +
+        "ramp, pre-opening costs) landing against only a partial year of revenue. This driver is a " +
+        "positive adjuster representing partial recovery as Epic Universe moves into its first full " +
+        "year and one-time launch costs roll off — sized as roughly two-thirds of the observed " +
+        "2.9-point compression. A labeled, conservative assumption, not a disclosed figure.",
+      unit: "points",
+      defaultValue: 2.0,
+      min: 0,
+      max: 4.0,
+      step: 0.1,
+      estimateFlag: true,
+    },
   ],
 };
 
@@ -303,6 +320,8 @@ export interface CompanyConfig {
   proFormaDisclosure: string;
   ebitdaAlignmentDisclosure: string;
   saplessFramingDisclosure: string;
+  githubUrl: string;
+  aboutText: string;
 }
 
 export const NBCU_CONFIG: CompanyConfig = {
@@ -336,6 +355,27 @@ export const NBCU_CONFIG: CompanyConfig = {
     "Sportico World Cup advertising revenue reporting via Awful Announcing",
     "World Advertising Research Center global ad trends research",
   ],
+
+  githubUrl: "https://github.com/agustinecortez/nbcu-segment-forecast-dashboard",
+
+  aboutText:
+    "This dashboard models post-Versant NBCUniversal as it sits inside Comcast's Content & " +
+    "Experiences segment reporting, using publicly disclosed fiscal year 2025 figures from " +
+    "Comcast's Form 10-K (filed February 3, 2026) and Versant Media Group's standalone Form " +
+    "10-K. Because Comcast's fiscal year 2025 10-K still reports Media including Versant (the " +
+    "separation did not close until January 2, 2026), the post-Versant Media baseline shown here " +
+    "is a constructed pro-forma subtraction, not a Comcast-published recast. Several drivers — " +
+    "the Media revenue-mix split, the NBA rights drag, the World Cup revenue presets, and the " +
+    "Epic Universe launch-cost roll-off — are labeled estimates because NBCUniversal does not " +
+    "disclose them at this granularity; each is flagged in the UI rather than presented as fact. " +
+    "This is a single-year forecast (fiscal year 2025 pro-forma to a fiscal year 2026 estimate) " +
+    "and does not extend to fiscal year 2027 or 2028. Adjusted EBITDA is the headline " +
+    "profitability metric throughout — Comcast does not disclose segment-level depreciation and " +
+    "amortization for Media, Studios, or Theme Parks individually, so an Operating Income " +
+    "conversion would require an imputed allocation rather than a disclosed fact. Forecast " +
+    "scenarios are illustrative and adjustable by the user; they do not represent Comcast or " +
+    "NBCUniversal guidance. Built by AugieAI Execute as a methodology demonstration of " +
+    "driver-based segment forecasting. This is not investment advice.",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -361,4 +401,30 @@ export function getDefaultDriverValues(): DriverValues {
 
 export function getSegment(key: SegmentKey): SegmentBaseline {
   return NBCU_CONFIG.segments.find((s) => s.key === key)!;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sensitivity-eligible drivers — every continuous slider and preset driver
+// across all three segments, used to build the FY26E Adjusted EBITDA
+// sensitivity tornado chart (Addendum Section 3). Locked lines are
+// intentionally excluded: the realized first-half tailwind is an
+// already-realized fact with no uncertainty band, not a forecast assumption.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SensitivityDriverRef {
+  id: string;
+  label: string;
+}
+
+export function getAllSensitivityDrivers(): SensitivityDriverRef[] {
+  const refs: SensitivityDriverRef[] = [];
+  for (const segment of NBCU_CONFIG.segments) {
+    for (const driver of segment.drivers) {
+      refs.push({ id: driver.id, label: driver.label });
+    }
+    for (const preset of segment.presetDrivers ?? []) {
+      refs.push({ id: preset.id, label: preset.label });
+    }
+  }
+  return refs;
 }

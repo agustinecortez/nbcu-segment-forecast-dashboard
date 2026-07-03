@@ -6,7 +6,9 @@ import SegmentTabs from "@/components/SegmentTabs";
 import DriverPanel from "@/components/DriverPanel";
 import MetricCards from "@/components/MetricCards";
 import MarginBridgeChart from "@/components/MarginBridgeChart";
+import TornadoChart from "@/components/TornadoChart";
 import ModelingLimitationFootnote from "@/components/ModelingLimitationFootnote";
+import AboutCard from "@/components/AboutCard";
 import Footer from "@/components/Footer";
 import { DriverValues, getDefaultDriverValues, getSegment, SegmentKey } from "@/lib/nbcuData";
 import { computeMediaForecast, computeStudiosForecast, computeThemeParksForecast } from "@/lib/forecastMath";
@@ -26,6 +28,7 @@ const ACCENT_COLOR: Record<SegmentKey, string> = {
 export default function DashboardPage() {
   const [drivers, setDrivers] = useState<DriverValues>(getDefaultDriverValues);
   const [activeSegment, setActiveSegment] = useState<SegmentKey>("media");
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   function handleDriverChange(id: string, value: number) {
     setDrivers((prev) => ({ ...prev, [id]: value }));
@@ -51,7 +54,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: "var(--color-bg-primary)" }}>
-      <Header onReset={handleReset} />
+      <Header onAboutOpen={() => setAboutOpen(true)} onReset={handleReset} />
 
       <SegmentTabs segments={SEGMENT_TABS} active={activeSegment} onChange={setActiveSegment} />
 
@@ -79,10 +82,34 @@ export default function DashboardPage() {
 
           {activeSegment === "media" && (
             <>
-              <MarginBridgeChart bridge={mediaForecast.bridge} />
+              <MarginBridgeChart
+                title="Media Margin Bridge — FY25 Actual to FY26 Estimate"
+                bridge={mediaForecast.bridge}
+                accentColor={accentColor}
+              />
               <ModelingLimitationFootnote />
             </>
           )}
+
+          {activeSegment === "studios" && (
+            <MarginBridgeChart
+              title="Studios Margin Bridge — FY25 Actual to FY26 Estimate"
+              bridge={studiosForecast.bridge}
+              accentColor={accentColor}
+            />
+          )}
+
+          {activeSegment === "themeParks" && (
+            <MarginBridgeChart
+              title="Theme Parks Margin Bridge — FY25 Actual to FY26 Estimate"
+              bridge={themeParksForecast.bridge}
+              accentColor={accentColor}
+            />
+          )}
+
+          {/* Combined sensitivity across all three segments — not segment-
+              specific, so it's shown regardless of which tab is active. */}
+          <TornadoChart drivers={drivers} />
 
           {/* Mobile: driver panel stacks below main content */}
           <div className="lg:hidden card p-0 overflow-hidden">
@@ -97,6 +124,8 @@ export default function DashboardPage() {
       </div>
 
       <Footer />
+
+      <AboutCard isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }

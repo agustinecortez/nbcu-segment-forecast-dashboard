@@ -52,6 +52,8 @@ export interface SegmentBaseline {
   name: string;
   fy25Revenue: number; // $M, pro-forma for Media
   fy25AdjustedEbitda: number; // $M, pro-forma for Media
+  revenueMixNote: string; // disclosure — internal revenue-mix split used to convert
+                           // growth-rate drivers into dollars, always rendered with an Est. badge
   drivers: DriverDefinition[];
   presetDrivers?: PresetDriverDefinition[];
   lockedLines?: LockedLineDefinition[];
@@ -63,12 +65,19 @@ export interface SegmentBaseline {
 // These splits are NOT separately disclosed by Comcast or Versant — the 10-Ks
 // report each segment as a single revenue total. They exist only so that
 // growth-rate drivers (e.g. "Peacock subscriber growth") have a dollar base to
-// act on. Flagged here, in the driver tooltips, and in the dashboard footer.
+// act on. Flagged here (SegmentBaseline.revenueMixNote, rendered with an Est.
+// badge in the driver panel), in the driver tooltips, and in the dashboard
+// footer.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const MEDIA_REVENUE_MIX = {
-  peacockShare: 0.25, // Peacock (streaming)
-  linearShare: 0.70, // NBC broadcast + Telemundo + Bravo linear
+  // Sourced ratio: Peacock's own reported fiscal year 2025 revenue of $5.4B
+  // against post-Versant Media's $20.4B pro-forma baseline = 26.5%. Still
+  // flagged as an estimate — Comcast doesn't explicitly bridge Peacock's
+  // standalone reporting basis to the Media pro-forma, and the residual
+  // Linear/Other split below is an internal allocation, not disclosed.
+  peacockShare: 0.265, // Peacock (streaming)
+  linearShare: 0.685, // NBC broadcast + Telemundo + Bravo linear
   otherShare: 0.05, // residual content licensing/other, held flat
 };
 
@@ -97,14 +106,22 @@ const MEDIA_BASELINE: SegmentBaseline = {
   name: "Media",
   fy25Revenue: 20_400,
   fy25AdjustedEbitda: 776,
+  revenueMixNote:
+    "Media revenue mix — Peacock 26.5% / Linear 68.5% / Other 5.0% — is an internal modeling " +
+    "split used to convert growth-rate drivers into dollars. Peacock's share is sourced (Peacock's " +
+    "own reported fiscal year 2025 revenue of $5.4B against the $20.4B post-Versant Media pro-forma " +
+    "baseline) but still flagged as an estimate: Comcast doesn't explicitly bridge Peacock's " +
+    "standalone reporting basis to the Media pro-forma, and the residual Linear/Other split is not " +
+    "independently disclosed.",
   drivers: [
     {
       id: "peacockSubGrowth",
       label: "Peacock Subscriber Growth",
       description:
         "Fiscal year 2025 grew approximately 22% year over year. Applied against an internal " +
-        "modeling allocation of ~25% of Media revenue attributed to Peacock (not separately " +
-        "disclosed by Comcast).",
+        "modeling allocation of 26.5% of Media revenue attributed to Peacock — sourced from " +
+        "Peacock's own reported fiscal year 2025 revenue of $5.4B against the $20.4B post-Versant " +
+        "Media baseline, though the reconciliation basis isn't explicitly bridged by Comcast.",
       unit: "percent",
       defaultValue: 20,
       min: 0,
@@ -205,6 +222,12 @@ const STUDIOS_BASELINE: SegmentBaseline = {
   name: "Studios",
   fy25Revenue: 11_286,
   fy25AdjustedEbitda: 1_099,
+  revenueMixNote:
+    "Studios revenue mix — Theatrical 20% / Content Licensing 55% / Other 25% — is an internal " +
+    "modeling split used to convert growth-rate drivers into dollars. No percentage breakdown is " +
+    "publicly disclosed by Comcast, only qualitative direction; Studios also has real intercompany " +
+    "eliminations with Media that make a clean external split especially hard to source. Unsourced " +
+    "modeling assumption, not a disclosed figure.",
   drivers: [
     {
       id: "contentLicensingGrowth",
@@ -220,24 +243,42 @@ const STUDIOS_BASELINE: SegmentBaseline = {
       id: "theatricalSlatePerformance",
       label: "Theatrical Slate Performance",
       description:
-        "Fiscal year 2025 theatrical revenue down on a tough comparison versus the prior year.",
+        "2026's confirmed slate includes Christopher Nolan's 'The Odyssey' (event-film tier, " +
+        "comparable to Oppenheimer's $976M), the 'Fast & Furious' franchise finale, a sequel to " +
+        "the $1.36 billion-grossing Super Mario Bros. Movie, and another Illumination 'Despicable " +
+        "Me' franchise entry. A judgment-based magnitude grounded in named, real titles — not a " +
+        "disclosed NBCUniversal figure.",
       unit: "percent",
-      defaultValue: 0,
+      defaultValue: 10,
       min: -10,
       max: 20,
       step: 0.5,
+      estimateFlag: true,
     },
     {
-      id: "programmingCostGrowth",
-      label: "Programming & Production Cost Growth",
-      description:
-        "Fiscal year 2025 Adjusted EBITDA fell 21.7% despite revenue growth — this driver is what " +
-        "makes that visible instead of hiding it behind a flat margin slider.",
+      id: "contentProductionCostInflation",
+      label: "Content Production Cost Inflation",
+      description: "Industry-wide talent and production budget inflation.",
       unit: "points",
-      defaultValue: -3.0,
-      min: -8.0,
+      defaultValue: -1.5,
+      min: -4.0,
       max: 0,
       step: 0.1,
+      estimateFlag: true,
+    },
+    {
+      id: "slateSizeMarketingSpendGrowth",
+      label: "Slate Size & Marketing Spend Growth",
+      description:
+        "Sourced to The Hollywood Reporter's studio profit report: NBCUniversal's studio unit's " +
+        "bottom line dropped in calendar year 2025, driven by a bigger slate — more titles " +
+        "released means more marketing and production spend spread across more films.",
+      unit: "points",
+      defaultValue: -1.5,
+      min: -5.0,
+      max: 0,
+      step: 0.1,
+      estimateFlag: true,
     },
   ],
 };
@@ -251,6 +292,11 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
   name: "Theme Parks",
   fy25Revenue: 9_836,
   fy25AdjustedEbitda: 3_080,
+  revenueMixNote:
+    "Theme Parks revenue mix — Epic Universe 8% / Legacy Parks 92% — is an internal modeling " +
+    "split used to convert growth-rate drivers into dollars. Comcast discloses only qualitative " +
+    "direction (e.g. Epic Universe driving growth), not a percentage breakdown. Unsourced modeling " +
+    "assumption, not a disclosed figure.",
   drivers: [
     {
       id: "epicAttendanceRamp",
@@ -293,13 +339,29 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
         "Margin compressed ~2.9 points year over year in fiscal year 2025 (34.2% to 31.3%) despite " +
         "14.2% revenue growth, driven by Epic Universe's launch-year cost load (marketing, staffing " +
         "ramp, pre-opening costs) landing against only a partial year of revenue. This driver is a " +
-        "positive adjuster representing partial recovery as Epic Universe moves into its first full " +
-        "year and one-time launch costs roll off — sized as roughly two-thirds of the observed " +
-        "2.9-point compression. A labeled, conservative assumption, not a disclosed figure.",
+        "positive adjuster representing partial recovery as fiscal year 2026 is confirmed as Epic " +
+        "Universe's first full year of operation and one-time launch costs roll off. A labeled, " +
+        "conservative assumption, not a disclosed figure.",
       unit: "points",
-      defaultValue: 2.0,
+      defaultValue: 2.5,
       min: 0,
       max: 4.0,
+      step: 0.1,
+      estimateFlag: true,
+    },
+    {
+      id: "universalKidsResortLaunchCostDrag",
+      label: "Universal Kids Resort Launch-Cost Drag",
+      description:
+        "Sourced to Comcast's fourth-quarter 2025 earnings commentary confirming 2026 brings both " +
+        "Epic Universe's first full year and the Universal Kids Resort opening — same launch-cost " +
+        "mechanism that compressed fiscal year 2025 Theme Parks margin, applied a second time at a " +
+        "smaller assumed scale since Kids Resort is not Epic Universe-sized. No disclosed cost " +
+        "figure exists for this specific opening.",
+      unit: "points",
+      defaultValue: -1.0,
+      min: -3.0,
+      max: 0,
       step: 0.1,
       estimateFlag: true,
     },
@@ -320,7 +382,11 @@ export interface CompanyConfig {
   proFormaDisclosure: string;
   ebitdaAlignmentDisclosure: string;
   saplessFramingDisclosure: string;
+  versantExclusionFootnote: string;
+  educationalDisclosureLong: string;
+  educationalDisclosureShort: string;
   githubUrl: string;
+  comcastIrUrl: string;
   aboutText: string;
 }
 
@@ -348,6 +414,21 @@ export const NBCU_CONFIG: CompanyConfig = {
     "because SAP Analytics Cloud access requires enterprise licensing not available to an " +
     "individual developer.",
 
+  versantExclusionFootnote:
+    "This dashboard reflects NBCUniversal's post-Versant structure. Versant Media Group — CNBC, " +
+    "USA Network, MS NOW (formerly MSNBC), Golf Channel, E!, SYFY, Oxygen, and complementary " +
+    "digital properties — separated from Comcast on January 2, 2026, and is excluded from every " +
+    "figure shown here. The Media segment's revenue and Adjusted EBITDA are Comcast's as-reported " +
+    "Content & Experiences figures minus Versant's standalone carve-out, a constructed pro-forma " +
+    "estimate rather than a Comcast-published recast.",
+
+  // Exact wording pulled from the live Disney Segment Forecast Dashboard
+  // (disney-segment-dashboard.vercel.app) — not a paraphrase.
+  educationalDisclosureLong:
+    "This dashboard is presented for educational and methodology demonstration purposes only and " +
+    "is not investment advice or a recommendation to buy, hold, or sell any security.",
+  educationalDisclosureShort: "Educational use only · Not investment advice",
+
   sourceDisclosure: [
     "Comcast fiscal year 2025 Form 10-K (filed February 3, 2026)",
     "Versant Media Group fiscal year 2025 Form 10-K",
@@ -357,6 +438,7 @@ export const NBCU_CONFIG: CompanyConfig = {
   ],
 
   githubUrl: "https://github.com/agustinecortez/nbcu-segment-forecast-dashboard",
+  comcastIrUrl: "https://www.cmcsa.com/",
 
   aboutText:
     "This dashboard models post-Versant NBCUniversal as it sits inside Comcast's Content & " +
@@ -405,8 +487,9 @@ export function getSegment(key: SegmentKey): SegmentBaseline {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sensitivity-eligible drivers — every continuous slider and preset driver
-// across all three segments, used to build the FY26E Adjusted EBITDA
-// sensitivity tornado chart (Addendum Section 3). Locked lines are
+// within one segment, used to build that segment's own FY26E Adjusted EBITDA
+// sensitivity tornado chart (Addendum Revision 3 Section 2: split into three
+// segment-specific charts, each sorted independently). Locked lines are
 // intentionally excluded: the realized first-half tailwind is an
 // already-realized fact with no uncertainty band, not a forecast assumption.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -416,15 +499,11 @@ export interface SensitivityDriverRef {
   label: string;
 }
 
-export function getAllSensitivityDrivers(): SensitivityDriverRef[] {
-  const refs: SensitivityDriverRef[] = [];
-  for (const segment of NBCU_CONFIG.segments) {
-    for (const driver of segment.drivers) {
-      refs.push({ id: driver.id, label: driver.label });
-    }
-    for (const preset of segment.presetDrivers ?? []) {
-      refs.push({ id: preset.id, label: preset.label });
-    }
+export function getSensitivityDriversForSegment(key: SegmentKey): SensitivityDriverRef[] {
+  const segment = getSegment(key);
+  const refs: SensitivityDriverRef[] = segment.drivers.map((d) => ({ id: d.id, label: d.label }));
+  for (const preset of segment.presetDrivers ?? []) {
+    refs.push({ id: preset.id, label: preset.label });
   }
   return refs;
 }

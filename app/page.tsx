@@ -8,6 +8,7 @@ import MetricCards from "@/components/MetricCards";
 import MarginBridgeChart from "@/components/MarginBridgeChart";
 import TornadoChart from "@/components/TornadoChart";
 import ModelingLimitationFootnote from "@/components/ModelingLimitationFootnote";
+import VersantExclusionFootnote from "@/components/VersantExclusionFootnote";
 import AboutCard from "@/components/AboutCard";
 import Footer from "@/components/Footer";
 import { DriverValues, getDefaultDriverValues, getSegment, SegmentKey } from "@/lib/nbcuData";
@@ -23,6 +24,27 @@ const ACCENT_COLOR: Record<SegmentKey, string> = {
   media: "var(--color-media)",
   studios: "var(--color-studios)",
   themeParks: "var(--color-themeparks)",
+};
+
+const BRIDGE_TITLE: Record<SegmentKey, string> = {
+  media: "Media Margin Bridge — FY25 Actual to FY26 Estimate",
+  studios: "Studios Margin Bridge — FY25 Actual to FY26 Estimate",
+  themeParks: "Theme Parks Margin Bridge — FY25 Actual to FY26 Estimate",
+};
+
+const TORNADO_TITLE: Record<SegmentKey, string> = {
+  media: "Media FY26E Adjusted EBITDA Sensitivity",
+  studios: "Studios FY26E Adjusted EBITDA Sensitivity",
+  themeParks: "Theme Parks FY26E Adjusted EBITDA Sensitivity",
+};
+
+const TORNADO_SUBTITLE: Record<SegmentKey, string> = {
+  media:
+    "Impact on Media FY26E Adjusted EBITDA of ±10% relative shift per driver · sorted by total " +
+    "swing · excludes the locked realized event tailwind",
+  studios: "Impact on Studios FY26E Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
+  themeParks:
+    "Impact on Theme Parks FY26E Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
 };
 
 export default function DashboardPage() {
@@ -51,6 +73,7 @@ export default function DashboardPage() {
     themeParks: themeParksForecast,
   } as const;
   const activeForecast = forecastBySegment[activeSegment];
+  const activeBridge = activeForecast.bridge;
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: "var(--color-bg-primary)" }}>
@@ -73,6 +96,9 @@ export default function DashboardPage() {
 
         {/* Main canvas */}
         <main className="flex-1 overflow-y-auto px-6 py-6 space-y-4" style={{ minWidth: 0 }}>
+          {/* Persistent on every tab — Addendum v3 Section 1 */}
+          <VersantExclusionFootnote />
+
           <MetricCards
             segmentName={activeConfigSegment.name}
             baseline={activeForecast.baseline}
@@ -80,36 +106,17 @@ export default function DashboardPage() {
             accentColor={accentColor}
           />
 
-          {activeSegment === "media" && (
-            <>
-              <MarginBridgeChart
-                title="Media Margin Bridge — FY25 Actual to FY26 Estimate"
-                bridge={mediaForecast.bridge}
-                accentColor={accentColor}
-              />
-              <ModelingLimitationFootnote />
-            </>
-          )}
+          <MarginBridgeChart title={BRIDGE_TITLE[activeSegment]} bridge={activeBridge} accentColor={accentColor} />
 
-          {activeSegment === "studios" && (
-            <MarginBridgeChart
-              title="Studios Margin Bridge — FY25 Actual to FY26 Estimate"
-              bridge={studiosForecast.bridge}
-              accentColor={accentColor}
-            />
-          )}
+          {activeSegment === "media" && <ModelingLimitationFootnote />}
 
-          {activeSegment === "themeParks" && (
-            <MarginBridgeChart
-              title="Theme Parks Margin Bridge — FY25 Actual to FY26 Estimate"
-              bridge={themeParksForecast.bridge}
-              accentColor={accentColor}
-            />
-          )}
-
-          {/* Combined sensitivity across all three segments — not segment-
-              specific, so it's shown regardless of which tab is active. */}
-          <TornadoChart drivers={drivers} />
+          {/* Segment-specific sensitivity — Addendum v3 Section 2 */}
+          <TornadoChart
+            segmentKey={activeSegment}
+            drivers={drivers}
+            title={TORNADO_TITLE[activeSegment]}
+            subtitle={TORNADO_SUBTITLE[activeSegment]}
+          />
 
           {/* Mobile: driver panel stacks below main content */}
           <div className="lg:hidden card p-0 overflow-hidden">

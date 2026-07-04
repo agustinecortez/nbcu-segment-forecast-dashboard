@@ -2,6 +2,7 @@ import { DriverValues, SegmentBaseline } from "@/lib/nbcuData";
 import DriverSlider from "./DriverSlider";
 import PresetChips from "./PresetChips";
 import LockedLineDisplay from "./LockedLineDisplay";
+import RevenueMixNote from "./RevenueMixNote";
 
 interface DriverPanelProps {
   segment: SegmentBaseline;
@@ -34,6 +35,8 @@ export default function DriverPanel({ segment, drivers, onChange, accentColor }:
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pt-3 pb-3">
+        <RevenueMixNote note={segment.revenueMixNote} />
+
         {segment.drivers.map((driver) => (
           <DriverSlider
             key={driver.id}

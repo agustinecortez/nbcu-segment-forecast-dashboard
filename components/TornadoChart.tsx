@@ -12,11 +12,14 @@ import {
   ReferenceLine,
   Cell,
 } from "recharts";
-import { DriverValues } from "@/lib/nbcuData";
-import { computeTornadoBars, TornadoBar } from "@/lib/forecastMath";
+import { DriverValues, SegmentKey } from "@/lib/nbcuData";
+import { computeSegmentTornadoBars, TornadoBar } from "@/lib/forecastMath";
 
 interface TornadoChartProps {
+  segmentKey: SegmentKey;
   drivers: DriverValues;
+  title: string;
+  subtitle: string;
 }
 
 function fmtDelta(value: number): string {
@@ -35,11 +38,13 @@ function shortLabel(label: string): string {
     "FIFA World Cup 2026 Incremental Revenue": "World Cup Revenue",
     "Content Licensing Growth": "Content Licensing",
     "Theatrical Slate Performance": "Theatrical Slate",
-    "Programming & Production Cost Growth": "Programming Cost",
+    "Content Production Cost Inflation": "Content Cost Inflation",
+    "Slate Size & Marketing Spend Growth": "Slate Size / Marketing",
     "Epic Universe Attendance Ramp": "Epic Attendance",
     "Per Capita Spending Growth": "Per Capita Spend",
     "Legacy Domestic Parks Growth": "Legacy Parks Growth",
     "Epic Universe Launch-Cost Roll-Off": "Epic Launch-Cost Roll-Off",
+    "Universal Kids Resort Launch-Cost Drag": "Kids Resort Drag",
   };
   return map[label] ?? label;
 }
@@ -100,15 +105,19 @@ function CustomTooltip({
 }
 
 /**
- * FY26E Adjusted EBITDA sensitivity — Media + Studios + Theme Parks combined
- * (Addendum Section 3). For each driver, +/-10% relative shift of its own
- * current value (percentage, points, or dollars — same rule for all three
- * unit types), all other drivers held at current slider state. The realized
- * first-half tailwind is excluded: it's an already-realized fact with no
- * uncertainty band, not a forecast assumption, so it never appears here.
+ * Segment-specific sensitivity tornado (Addendum v3 Section 2 — replaces the
+ * single consolidated 13-bar chart from Addendum v2). Each segment gets its
+ * own chart against its own FY26E Adjusted EBITDA, sorted independently by
+ * swing. Computed via computeSegmentTornadoBars, which calls the same
+ * compute<Segment>Forecast function used by the metric cards and bridge —
+ * single source of truth (Section 6). The realized first-half tailwind is
+ * excluded from Media's chart by construction.
  */
-export default function TornadoChart({ drivers }: TornadoChartProps) {
-  const bars: TornadoBar[] = useMemo(() => computeTornadoBars(drivers), [drivers]);
+export default function TornadoChart({ segmentKey, drivers, title, subtitle }: TornadoChartProps) {
+  const bars: TornadoBar[] = useMemo(
+    () => computeSegmentTornadoBars(segmentKey, drivers),
+    [segmentKey, drivers]
+  );
 
   const chartData = bars.map((b) => ({
     ...b,
@@ -119,31 +128,32 @@ export default function TornadoChart({ drivers }: TornadoChartProps) {
 
   const maxAbs = Math.max(
     ...bars.flatMap((b) => [Math.abs(b.upsideDelta), Math.abs(b.downsideDelta)]),
-    100
+    50
   );
-  const domainPad = Math.ceil((maxAbs * 1.15) / 100) * 100;
+  const domainPad = Math.ceil((maxAbs * 1.15) / 50) * 50;
   const domain: [number, number] = [-domainPad, domainPad];
 
   const tickFormatter = (v: number) => {
     if (v === 0) return "$0";
     const sign = v > 0 ? "+" : "−";
-    return `${sign}$${(Math.abs(v) / 1000).toFixed(1)}B`;
+    return `${sign}$${Math.abs(v).toLocaleString()}M`;
   };
+
+  const chartHeight = Math.max(160, chartData.length * 44);
 
   return (
     <div className="card p-0 overflow-hidden">
       <div className="px-6 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
         <p className="font-semibold text-sm" style={{ color: "var(--color-text-primary)" }}>
-          FY26E Adjusted EBITDA Sensitivity
+          {title}
         </p>
         <p className="text-xs mt-0.5" style={{ color: "var(--color-text-tertiary)" }}>
-          Impact on Total Segment (Media + Studios + Theme Parks) Adjusted EBITDA of ±10% relative
-          shift per driver · sorted by total swing · excludes the locked realized event tailwind
+          {subtitle}
         </p>
       </div>
 
       <div className="px-2 pt-3 pb-2">
-        <ResponsiveContainer width="100%" height={420}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
           <ComposedChart
             layout="vertical"
             data={chartData}
@@ -164,7 +174,7 @@ export default function TornadoChart({ drivers }: TornadoChartProps) {
             <YAxis
               type="category"
               dataKey="label"
-              width={140}
+              width={150}
               tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
               axisLine={false}
               tickLine={false}
@@ -173,7 +183,7 @@ export default function TornadoChart({ drivers }: TornadoChartProps) {
 
             <ReferenceLine x={0} stroke="var(--color-border-strong)" strokeWidth={1.5} />
 
-            <Bar dataKey="upside" name="Upside (+10%)" radius={[0, 2, 2, 0]} maxBarSize={12}>
+            <Bar dataKey="upside" name="Upside (+10%)" radius={[0, 2, 2, 0]} maxBarSize={16}>
               {chartData.map((entry, index) => (
                 <Cell
                   key={`upside-${index}`}
@@ -182,7 +192,7 @@ export default function TornadoChart({ drivers }: TornadoChartProps) {
               ))}
             </Bar>
 
-            <Bar dataKey="downside" name="Downside (−10%)" radius={[2, 0, 0, 2]} maxBarSize={12}>
+            <Bar dataKey="downside" name="Downside (−10%)" radius={[2, 0, 0, 2]} maxBarSize={16}>
               {chartData.map((entry, index) => (
                 <Cell
                   key={`downside-${index}`}

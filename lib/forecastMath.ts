@@ -3,12 +3,20 @@
 // Pure forecast math functions. No UI dependencies. All dollar values in $M.
 //
 // Math spec: NBCU_Dashboard_Build_Spec.md Section 3-4;
-// NBCU_Dashboard_Build_Spec_Addendum_v2.md Section 1-3.
+// NBCU_Dashboard_Build_Spec_Addendum_v2.md Section 1-3;
+// NBCU_Dashboard_Build_Spec_Addendum_v3.md Section 2-6.
 //
 // Scope note: single forecast year only (FY25 pro-forma baseline -> FY26E).
 // "Baseline" objects below are always the fixed FY25 Section 3 figures,
 // regardless of slider state — this is what the Section 7 exit criterion
 // ("every slider at default reproduces the exact baseline") is checking.
+//
+// Single source of truth (Addendum v3 Section 6): the metric cards, each
+// segment's dollar bridge, and each segment's tornado all read from the same
+// compute<Segment>Forecast() function below — there is exactly one place
+// per segment where Revenue/Adjusted EBITDA/Margin get computed. The tornado
+// perturbs a copy of the driver map and calls the identical function; it does
+// not re-derive the math independently.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -17,7 +25,8 @@ import {
   MEDIA_REVENUE_MIX,
   STUDIOS_REVENUE_MIX,
   THEME_PARKS_REVENUE_MIX,
-  getAllSensitivityDrivers,
+  SegmentKey,
+  getSensitivityDriversForSegment,
   getSegment,
 } from "./nbcuData";
 
@@ -27,16 +36,30 @@ export interface SegmentForecast {
   margin: number; // percentage, e.g. 3.8
 }
 
-// Generic margin-bridge step, shared by Media, Studios, and Theme Parks
-// waterfall charts (Addendum Section 1-2 reuse Media's existing pattern).
-export interface MarginBridgeStep {
+// Dollar-denominated margin bridge step (Addendum v3 Section 5). `delta` is
+// the $M contributed by this step (signed), or the running total when
+// isTotal. `detail` is the secondary label (margin %, point value, or
+// blended growth %) rendered directly on the chart, always visible —
+// never hidden behind a hover tooltip.
+export interface DollarBridgeStep {
   label: string;
-  delta: number; // percentage points contributed by this step
+  delta: number;
+  detail: string;
   isTotal: boolean;
 }
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+function fmtSignedPct(v: number): string {
+  const sign = v >= 0 ? "+" : "";
+  return `${sign}${v.toFixed(1)}%`;
+}
+
+function fmtSignedPt(v: number): string {
+  const sign = v >= 0 ? "+" : "";
+  return `${sign}${v.toFixed(1)} pt`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,7 +73,7 @@ export interface MediaForecastResult {
   realizedTailwind: number;
   worldCupRevenue: number;
   eventRevenue: number;
-  bridge: MarginBridgeStep[];
+  bridge: DollarBridgeStep[];
 }
 
 export function computeMediaForecast(drivers: DriverValues): MediaForecastResult {
@@ -79,29 +102,40 @@ export function computeMediaForecast(drivers: DriverValues): MediaForecastResult
 
   const totalRevenue = organicRevenue + eventRevenue;
 
-  // Margin adjusters shift the organic-portion effective margin from the
-  // FY25 baseline.
-  const adjustedOrganicMarginPts = fy25Margin + drivers.nbaRightsDrag + drivers.peacockLossNarrowing;
-  const organicEbitda = organicRevenue * (adjustedOrganicMarginPts / 100);
-
-  // Event revenue converts to EBITDA at its own flow-through rate.
+  // Dollar bridge decomposition — exact and additive, no plug required:
+  //   FY25 + [organic rev growth @ FY25 margin] + [margin adjusters on grown
+  //   organic revenue] + [event EBITDA] = organic EBITDA + event EBITDA
+  const netAdjusterPts = drivers.nbaRightsDrag + drivers.peacockLossNarrowing;
+  const revenueGrowthEbitda = organicRevenue * (fy25Margin / 100) - fy25Ebitda;
+  const marginAdjusterEbitda = organicRevenue * (netAdjusterPts / 100);
   const eventEbitda = eventRevenue * EVENT_FLOW_THROUGH_RATE;
 
-  const totalEbitda = organicEbitda + eventEbitda;
+  const totalEbitda = fy25Ebitda + revenueGrowthEbitda + marginAdjusterEbitda + eventEbitda;
   const totalMargin = (totalEbitda / totalRevenue) * 100;
 
-  // The event flow-through bridge bar is the plug that reconciles the
-  // organic-margin path to the true blended margin — this guarantees the
-  // bridge always sums exactly to the computed FY26E margin, at every
-  // slider combination, by construction (not by coincidence).
-  const eventFlowThroughPts = totalMargin - adjustedOrganicMarginPts;
+  const blendedGrowthPct = (organicRevenue / fy25Revenue - 1) * 100;
 
-  const bridge: MarginBridgeStep[] = [
-    { label: "FY25 Actual", delta: fy25Margin, isTotal: true },
-    { label: "NBA Rights Drag", delta: drivers.nbaRightsDrag, isTotal: false },
-    { label: "Peacock Narrowing", delta: drivers.peacockLossNarrowing, isTotal: false },
-    { label: "Event Flow-Through", delta: eventFlowThroughPts, isTotal: false },
-    { label: "FY26E", delta: totalMargin, isTotal: true },
+  const bridge: DollarBridgeStep[] = [
+    { label: "FY25 Actual", delta: fy25Ebitda, detail: `${fy25Margin.toFixed(1)}% margin`, isTotal: true },
+    {
+      label: "Organic Revenue Growth",
+      delta: revenueGrowthEbitda,
+      detail: `${fmtSignedPct(blendedGrowthPct)} blended`,
+      isTotal: false,
+    },
+    {
+      label: "Margin Adjusters",
+      delta: marginAdjusterEbitda,
+      detail: `${fmtSignedPt(netAdjusterPts)} net (NBA drag + Peacock narrowing)`,
+      isTotal: false,
+    },
+    {
+      label: "Event Revenue Flow-Through",
+      delta: eventEbitda,
+      detail: `${Math.round(EVENT_FLOW_THROUGH_RATE * 100)}% flow-through`,
+      isTotal: false,
+    },
+    { label: "FY26E", delta: totalEbitda, detail: `${totalMargin.toFixed(1)}% margin`, isTotal: true },
   ];
 
   return {
@@ -122,7 +156,7 @@ export function computeMediaForecast(drivers: DriverValues): MediaForecastResult
 export interface StudiosForecastResult {
   baseline: SegmentForecast;
   estimate: SegmentForecast;
-  bridge: MarginBridgeStep[];
+  bridge: DollarBridgeStep[];
 }
 
 export function computeStudiosForecast(drivers: DriverValues): StudiosForecastResult {
@@ -141,16 +175,37 @@ export function computeStudiosForecast(drivers: DriverValues): StudiosForecastRe
 
   const revenue = theatricalFY26 + licensingFY26 + otherFY26;
 
-  const adjustedMargin = fy25Margin + drivers.programmingCostGrowth;
+  // Two cost drivers (Addendum v3 Section 3) replace the single v2 driver.
+  const costPts = drivers.contentProductionCostInflation + drivers.slateSizeMarketingSpendGrowth;
+  const adjustedMargin = fy25Margin + costPts;
   const adjustedEbitda = revenue * (adjustedMargin / 100);
 
-  // Single-adjuster bridge — no plug needed, since programmingCostGrowth is
-  // the only step between FY25 actual and FY26E and the margin is applied
-  // uniformly (Addendum Section 2).
-  const bridge: MarginBridgeStep[] = [
-    { label: "FY25 Actual", delta: fy25Margin, isTotal: true },
-    { label: "Programming Cost Growth", delta: drivers.programmingCostGrowth, isTotal: false },
-    { label: "FY26E", delta: adjustedMargin, isTotal: true },
+  const blendedGrowthPct = (revenue / fy25Revenue - 1) * 100;
+  const revenueGrowthEbitda = revenue * (fy25Margin / 100) - fy25Ebitda;
+  const contentCostEbitda = revenue * (drivers.contentProductionCostInflation / 100);
+  const slateSizeEbitda = revenue * (drivers.slateSizeMarketingSpendGrowth / 100);
+
+  const bridge: DollarBridgeStep[] = [
+    { label: "FY25 Actual", delta: fy25Ebitda, detail: `${fy25Margin.toFixed(1)}% margin`, isTotal: true },
+    {
+      label: "Revenue Growth",
+      delta: revenueGrowthEbitda,
+      detail: `${fmtSignedPct(blendedGrowthPct)} blended (2026 slate)`,
+      isTotal: false,
+    },
+    {
+      label: "Content Cost Inflation",
+      delta: contentCostEbitda,
+      detail: fmtSignedPt(drivers.contentProductionCostInflation),
+      isTotal: false,
+    },
+    {
+      label: "Slate Size / Marketing Spend",
+      delta: slateSizeEbitda,
+      detail: fmtSignedPt(drivers.slateSizeMarketingSpendGrowth),
+      isTotal: false,
+    },
+    { label: "FY26E", delta: adjustedEbitda, detail: `${adjustedMargin.toFixed(1)}% margin`, isTotal: true },
   ];
 
   return {
@@ -167,7 +222,7 @@ export function computeStudiosForecast(drivers: DriverValues): StudiosForecastRe
 export interface ThemeParksForecastResult {
   baseline: SegmentForecast;
   estimate: SegmentForecast;
-  bridge: MarginBridgeStep[];
+  bridge: DollarBridgeStep[];
 }
 
 export function computeThemeParksForecast(drivers: DriverValues): ThemeParksForecastResult {
@@ -186,16 +241,39 @@ export function computeThemeParksForecast(drivers: DriverValues): ThemeParksFore
 
   const revenue = epicFY26 + legacyFY26;
 
-  // Epic Universe launch-cost roll-off is a positive margin adjuster on top
-  // of the FY25 base rate (Addendum Section 1) — partial recovery of the
-  // FY25 launch-year compression as one-time costs roll off.
-  const adjustedMargin = fy25Margin + drivers.epicLaunchCostRollOff;
+  // Epic Universe launch-cost roll-off (revised default, Addendum v3) plus
+  // the new Universal Kids Resort launch-cost drag — same launch-cost
+  // mechanism applied a second time at a smaller assumed scale.
+  const adjusterPts = drivers.epicLaunchCostRollOff + drivers.universalKidsResortLaunchCostDrag;
+  const adjustedMargin = fy25Margin + adjusterPts;
   const adjustedEbitda = revenue * (adjustedMargin / 100);
 
-  const bridge: MarginBridgeStep[] = [
-    { label: "FY25 Actual", delta: fy25Margin, isTotal: true },
-    { label: "Epic Launch-Cost Roll-Off", delta: drivers.epicLaunchCostRollOff, isTotal: false },
-    { label: "FY26E", delta: adjustedMargin, isTotal: true },
+  const blendedGrowthPct = (revenue / fy25Revenue - 1) * 100;
+  const revenueGrowthEbitda = revenue * (fy25Margin / 100) - fy25Ebitda;
+  const epicRollOffEbitda = revenue * (drivers.epicLaunchCostRollOff / 100);
+  const kidsResortEbitda = revenue * (drivers.universalKidsResortLaunchCostDrag / 100);
+
+  const bridge: DollarBridgeStep[] = [
+    { label: "FY25 Actual", delta: fy25Ebitda, detail: `${fy25Margin.toFixed(1)}% margin`, isTotal: true },
+    {
+      label: "Revenue Growth",
+      delta: revenueGrowthEbitda,
+      detail: `${fmtSignedPct(blendedGrowthPct)} blended`,
+      isTotal: false,
+    },
+    {
+      label: "Epic Universe Roll-Off",
+      delta: epicRollOffEbitda,
+      detail: fmtSignedPt(drivers.epicLaunchCostRollOff),
+      isTotal: false,
+    },
+    {
+      label: "Universal Kids Resort Drag",
+      delta: kidsResortEbitda,
+      detail: `${fmtSignedPt(drivers.universalKidsResortLaunchCostDrag)}, est.`,
+      isTotal: false,
+    },
+    { label: "FY26E", delta: adjustedEbitda, detail: `${adjustedMargin.toFixed(1)}% margin`, isTotal: true },
   ];
 
   return {
@@ -206,49 +284,49 @@ export function computeThemeParksForecast(drivers: DriverValues): ThemeParksFore
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Total Segment Adjusted EBITDA — Media + Studios + Theme Parks combined
-// ─────────────────────────────────────────────────────────────────────────────
-
-export function computeTotalAdjustedEbitda(drivers: DriverValues): number {
-  return (
-    computeMediaForecast(drivers).estimate.adjustedEbitda +
-    computeStudiosForecast(drivers).estimate.adjustedEbitda +
-    computeThemeParksForecast(drivers).estimate.adjustedEbitda
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// FY26E Adjusted EBITDA sensitivity — tornado chart (Addendum Section 3)
+// Per-segment FY26E Adjusted EBITDA sensitivity — tornado chart
+// (Addendum v3 Section 2: three segment-specific charts, not one
+// consolidated chart)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface TornadoBar {
   driverId: string;
   driverLabel: string;
-  upsideDelta: number; // $M change in Total Segment Adjusted EBITDA at +10% relative
-  downsideDelta: number; // $M change in Total Segment Adjusted EBITDA at -10% relative
+  upsideDelta: number; // $M change in this segment's FY26E Adjusted EBITDA at +10% relative
+  downsideDelta: number; // $M change in this segment's FY26E Adjusted EBITDA at -10% relative
   absSwing: number; // |upside - downside| — used for sort order
 }
 
+// Single source of truth (Section 6): the tornado calls the exact same
+// compute<Segment>Forecast function used by the metric cards and the bridge
+// — never a separately-derived calculation.
+const SEGMENT_FORECAST_FN: Record<SegmentKey, (drivers: DriverValues) => { estimate: SegmentForecast }> = {
+  media: computeMediaForecast,
+  studios: computeStudiosForecast,
+  themeParks: computeThemeParksForecast,
+};
+
 /**
- * For each sensitivity-eligible driver (percentage growth drivers, point-based
- * margin adjusters, and the dollar-denominated World Cup driver all use the
- * same rule — shift the driver's own current value +/-10% relative), hold
- * every other driver at its current slider value, recompute Total Segment
- * Adjusted EBITDA, and record the swing from the base case. The realized
- * first-half tailwind is excluded by construction: getAllSensitivityDrivers()
+ * For each of this segment's own sensitivity-eligible drivers, hold every
+ * other driver (in every segment) at its current slider value, shift the
+ * target driver's own current value +/-10% relative, recompute this
+ * segment's FY26E Adjusted EBITDA via the shared compute<Segment>Forecast
+ * function, and record the swing from the base case. The realized first-half
+ * tailwind is excluded by construction: getSensitivityDriversForSegment()
  * only enumerates drivers and preset drivers, never locked lines.
  */
-export function computeTornadoBars(drivers: DriverValues): TornadoBar[] {
-  const baseline = computeTotalAdjustedEbitda(drivers);
-  const refs = getAllSensitivityDrivers();
+export function computeSegmentTornadoBars(segmentKey: SegmentKey, drivers: DriverValues): TornadoBar[] {
+  const computeFn = SEGMENT_FORECAST_FN[segmentKey];
+  const baseline = computeFn(drivers).estimate.adjustedEbitda;
+  const refs = getSensitivityDriversForSegment(segmentKey);
 
   const bars: TornadoBar[] = refs.map((ref) => {
     const currentValue = drivers[ref.id];
     const upDrivers = { ...drivers, [ref.id]: currentValue * 1.1 };
     const downDrivers = { ...drivers, [ref.id]: currentValue * 0.9 };
 
-    const upEbitda = computeTotalAdjustedEbitda(upDrivers);
-    const downEbitda = computeTotalAdjustedEbitda(downDrivers);
+    const upEbitda = computeFn(upDrivers).estimate.adjustedEbitda;
+    const downEbitda = computeFn(downDrivers).estimate.adjustedEbitda;
 
     const upsideDelta = upEbitda - baseline;
     const downsideDelta = downEbitda - baseline;
@@ -271,27 +349,52 @@ export function computeTornadoBars(drivers: DriverValues): TornadoBar[] {
 
 export interface WaterfallDatum {
   label: string;
-  base: number; // invisible stacking base
-  value: number; // visible bar height
-  raw: number; // signed underlying value (for tooltip + color)
+  base: number; // invisible stacking base (exact, drives real bar height/position)
+  value: number; // visible bar height ($M, exact)
+  raw: number; // rounded $M value shown in the on-screen label (see note below)
+  detail: string; // secondary label, always rendered
   isTotal: boolean;
 }
 
-export function buildWaterfallData(steps: MarginBridgeStep[]): WaterfallDatum[] {
+/**
+ * Bar heights/positions use the exact (unrounded) dollar math so the chart's
+ * proportions stay accurate. But the on-screen labels are rounded to whole
+ * millions independently per bar — round each delta separately and they can
+ * fail to sum to the rounded ending total (e.g. 1099 + 48 - 177 - 177 = 793,
+ * one dollar off a $792M ending bar that itself rounds correctly). To keep
+ * the displayed integers internally consistent, round the *cumulative*
+ * running total at each step and take successive differences for display —
+ * a standard telescoping trick that guarantees the on-screen numbers always
+ * sum exactly, not just the underlying floats.
+ */
+export function buildWaterfallData(steps: DollarBridgeStep[]): WaterfallDatum[] {
   let cumulative = 0;
+  let roundedCumulative = 0;
   return steps.map((step) => {
     if (step.isTotal) {
       cumulative = step.delta;
-      return { label: step.label, base: 0, value: step.delta, raw: step.delta, isTotal: true };
+      roundedCumulative = Math.round(cumulative);
+      return {
+        label: step.label,
+        base: 0,
+        value: step.delta,
+        raw: roundedCumulative,
+        detail: step.detail,
+        isTotal: true,
+      };
     }
     const start = cumulative;
     const end = cumulative + step.delta;
     cumulative = end;
+    const newRounded = Math.round(end);
+    const displayDelta = newRounded - roundedCumulative;
+    roundedCumulative = newRounded;
     return {
       label: step.label,
       base: Math.min(start, end),
       value: Math.abs(step.delta),
-      raw: step.delta,
+      raw: displayDelta,
+      detail: step.detail,
       isTotal: false,
     };
   });

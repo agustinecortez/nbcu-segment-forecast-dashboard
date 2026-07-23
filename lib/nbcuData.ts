@@ -50,6 +50,7 @@ export interface LockedLineDefinition {
   label: string;
   description: string;
   value: number; // $M — fixed, not user-editable
+  tag?: string; // e.g. "Included in Q1 Actual" — informational, not additive
 }
 
 // v2 quarterly: a pinned actual quarter — Q1 and Q2 2026 for every segment.
@@ -245,8 +246,11 @@ const MEDIA_BASELINE: SegmentBaseline = {
       description:
         "Milan Cortina Winter Olympics + Super Bowl 60, already reported in Comcast's " +
         "first-quarter 2026 results (~$2.2 billion company-wide; Media-specific attribution is " +
-        "an estimate). Locked — not adjustable.",
+        "an estimate). Locked — not adjustable. This event's revenue is already reflected in " +
+        "the pinned Q1 actual sourced from Comcast's 8-K. Shown here so you can see what's " +
+        "inside the actual quarter, not as an additive line.",
       value: 1_900,
+      tag: "Included in Q1 Actual",
     },
     {
       id: "q2WorldCupRevenue",
@@ -255,8 +259,11 @@ const MEDIA_BASELINE: SegmentBaseline = {
         "Comcast Q2 2026 disclosure — Telemundo Spanish-language World Cup revenue realized in " +
         "Q2 alone. Not adjustable. Source: Q2 2026 8-K, ex99.1 (ex991-6302026.htm): \"Excluding " +
         "$440 million of incremental revenue from the FIFA World Cup, Media revenue increased " +
-        "15.6%.\"",
+        "15.6%.\" This event's revenue is already reflected in the pinned Q2 actual sourced from " +
+        "Comcast's 8-K. Shown here so you can see what's inside the actual quarter, not as an " +
+        "additive line.",
       value: 440,
+      tag: "Included in Q2 Actual",
     },
   ],
 };

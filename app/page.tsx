@@ -12,7 +12,11 @@ import VersantExclusionFootnote from "@/components/VersantExclusionFootnote";
 import AboutCard from "@/components/AboutCard";
 import Footer from "@/components/Footer";
 import { DriverValues, getDefaultDriverValues, getSegment, SegmentKey } from "@/lib/nbcuData";
-import { computeMediaForecast, computeStudiosForecast, computeThemeParksForecast } from "@/lib/forecastMath";
+import {
+  computeMediaQuarterlyForecast,
+  computeStudiosQuarterlyForecast,
+  computeThemeParksQuarterlyForecast,
+} from "@/lib/forecastMath";
 
 const SEGMENT_TABS: { key: SegmentKey; name: string; color: string }[] = [
   { key: "media", name: "Media", color: "var(--color-media)" },
@@ -27,9 +31,9 @@ const ACCENT_COLOR: Record<SegmentKey, string> = {
 };
 
 const BRIDGE_TITLE: Record<SegmentKey, string> = {
-  media: "Media Margin Bridge — FY25 Actual to FY26 Estimate",
-  studios: "Studios Margin Bridge — FY25 Actual to FY26 Estimate",
-  themeParks: "Theme Parks Margin Bridge — FY25 Actual to FY26 Estimate",
+  media: "Media Margin Bridge — FY25 Baseline to FY26 Forecast",
+  studios: "Studios Margin Bridge — FY25 Baseline to FY26 Forecast",
+  themeParks: "Theme Parks Margin Bridge — FY25 Baseline to FY26 Forecast",
 };
 
 const TORNADO_TITLE: Record<SegmentKey, string> = {
@@ -60,9 +64,9 @@ export default function DashboardPage() {
     setDrivers(getDefaultDriverValues());
   }
 
-  const mediaForecast = useMemo(() => computeMediaForecast(drivers), [drivers]);
-  const studiosForecast = useMemo(() => computeStudiosForecast(drivers), [drivers]);
-  const themeParksForecast = useMemo(() => computeThemeParksForecast(drivers), [drivers]);
+  const mediaForecast = useMemo(() => computeMediaQuarterlyForecast(drivers), [drivers]);
+  const studiosForecast = useMemo(() => computeStudiosQuarterlyForecast(drivers), [drivers]);
+  const themeParksForecast = useMemo(() => computeThemeParksQuarterlyForecast(drivers), [drivers]);
 
   const activeConfigSegment = getSegment(activeSegment);
   const accentColor = ACCENT_COLOR[activeSegment];
@@ -102,7 +106,8 @@ export default function DashboardPage() {
           <MetricCards
             segmentName={activeConfigSegment.name}
             baseline={activeForecast.baseline}
-            estimate={activeForecast.estimate}
+            fy26Forecast={activeForecast.fy26Forecast}
+            priorFy26Forecast={activeForecast.priorFy26Forecast}
             accentColor={accentColor}
           />
 

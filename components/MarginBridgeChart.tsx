@@ -105,16 +105,16 @@ function CustomTooltip({
 }
 
 /**
- * Generic dollar-denominated margin bridge — used by Media, Studios, and
- * Theme Parks (Addendum v3 Section 5). Every bar carries its dollar amount
- * and a secondary detail label (margin %, point value, or blended growth %)
- * rendered directly on the chart via a custom LabelList content renderer —
- * always visible, not gated behind a hover tooltip (the tooltip still shows
- * the same information on hover, as a convenience, not as the only source).
- * Recomputed dynamically from live slider state — the bars are constructed
- * in lib/forecastMath.ts so they always sum exactly to the displayed FY26E
- * Adjusted EBITDA, at every slider combination (single source of truth,
- * Addendum v3 Section 6).
+ * Six-step dollar-denominated margin bridge — used by Media, Studios, and
+ * Theme Parks (v2 Section 6.3). Every bar carries its dollar amount and a
+ * secondary detail label (margin %) rendered directly on the chart via a
+ * custom LabelList content renderer — always visible, not gated behind a
+ * hover tooltip (the tooltip still shows the same information on hover, as
+ * a convenience, not as the only source). Recomputed dynamically from live
+ * slider state — the bars are constructed in lib/forecastMath.ts so the
+ * four quarters always sum exactly to the displayed FY26 Forecast Adjusted
+ * EBITDA, at every slider combination (single source of truth, Addendum v3
+ * Section 6, extended to quarterly by v2 Section 6).
  */
 export default function MarginBridgeChart({ title, subtitle, bridge, accentColor }: MarginBridgeChartProps) {
   const data = useMemo(() => buildWaterfallData(bridge), [bridge]);
@@ -133,7 +133,6 @@ export default function MarginBridgeChart({ title, subtitle, bridge, accentColor
   // re-expressed here for rendering.
   const extents = data.flatMap((d) => [d.base, d.base + d.value]);
   const minExtent = Math.min(0, ...extents);
-  const maxExtent = Math.max(0, ...extents);
   const SHIFT = Math.ceil(Math.max(0, -minExtent) / 50) * 50;
 
   const chartData = useMemo(

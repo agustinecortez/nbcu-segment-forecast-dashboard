@@ -555,6 +555,16 @@ export const NBCU_CONFIG: CompanyConfig = {
     "Comcast first-quarter 2026 earnings release and call commentary",
     "Sportico World Cup advertising revenue reporting via Awful Announcing",
     "World Advertising Research Center global ad trends research",
+    "Comcast Q1 2026 8-K, Exhibit 99.1 (ex991-3312026.htm, filed April 23, 2026, EDGAR) — " +
+      "Content & Experiences segment table; Q1 2026 Media/Studios/Theme Parks actuals",
+    "Comcast Q2 2026 8-K, Exhibit 99.1 (ex991-6302026.htm, filed July 23, 2026, EDGAR) — " +
+      "Content & Experiences segment table; Q2 2026 Media/Studios/Theme Parks actuals, the " +
+      "$440M Q2 World Cup revenue disclosure, and the $189M Peacock quarterly profit disclosure",
+    "2026 NBCUniversal theatrical release calendar — Variety, Deadline, and Nintendo/Illumination " +
+      "press materials (The Odyssey, The Super Mario Galaxy Movie, Minions & Monsters release dates " +
+      "and opening-weekend box office)",
+    "v1 shipped defaults, nbcu-segment-forecast-dashboard.vercel.app (July 3, 2026 base case, " +
+      "source for the frozen Prior FY 2026 Forecast column)",
   ],
 
   githubUrl: "https://github.com/agustinecortez/nbcu-segment-forecast-dashboard",
@@ -570,14 +580,26 @@ export const NBCU_CONFIG: CompanyConfig = {
     "the Media revenue-mix split, the NBA rights drag, the World Cup revenue presets, and the " +
     "Epic Universe launch-cost roll-off — are labeled estimates because NBCUniversal does not " +
     "disclose them at this granularity; each is flagged in the UI rather than presented as fact. " +
-    "This is a single-year forecast (fiscal year 2025 pro-forma to a fiscal year 2026 estimate) " +
+    "This is a single-year forecast (fiscal year 2025 pro-forma to a fiscal year 2026 forecast) " +
     "and does not extend to fiscal year 2027 or 2028. Adjusted EBITDA is the headline " +
     "profitability metric throughout — Comcast does not disclose segment-level depreciation and " +
     "amortization for Media, Studios, or Theme Parks individually, so an Operating Income " +
     "conversion would require an imputed allocation rather than a disclosed fact. Forecast " +
     "scenarios are illustrative and adjustable by the user; they do not represent Comcast or " +
     "NBCUniversal guidance. Built by AugieAI Execute as a methodology demonstration of " +
-    "driver-based segment forecasting. This is not investment advice.",
+    "driver-based segment forecasting. This is not investment advice. " +
+    "v2 update (July 2026): This dashboard now displays Q1 2026 and Q2 2026 as pinned actual " +
+    "quarters (sourced to Comcast's Q1 and Q2 2026 8-K filings on EDGAR), with Q3 and Q4 2026 " +
+    "remaining driver-adjustable forecast. All 2026 Comcast filings already exclude Versant Media " +
+    "Group since the separation completed January 2, 2026 — no per-quarter subtraction is applied " +
+    "to any 2026 number. The subtractive pro-forma method that produced the FY25 baseline still " +
+    "stands as the way that historical anchor was constructed, but it does not apply going " +
+    "forward. The FY26 Forecast headline shown in each metric card is the sum of the four " +
+    "quarters. A third row on each card, \"Prior FY 2026 Forecast,\" preserves the July 3, 2026 v1 " +
+    "base case for comparison — that column is frozen and does not respond to slider changes. " +
+    "Terminology throughout has shifted from \"Estimate\" to \"Forecast\"; the \"Est.\" badge is " +
+    "retained on modeling assumptions that are not independently disclosed (revenue-mix splits, " +
+    "seasonality vectors, NBA drag magnitude, Q3 World Cup residual sizing).",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -607,7 +629,7 @@ export function getSegment(key: SegmentKey): SegmentBaseline {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sensitivity-eligible drivers — every continuous slider and preset driver
-// within one segment, used to build that segment's own FY26E Adjusted EBITDA
+// within one segment, used to build that segment's own FY26 Forecast Adjusted EBITDA
 // sensitivity tornado chart (Addendum Revision 3 Section 2: split into three
 // segment-specific charts, each sorted independently). Locked lines are
 // intentionally excluded: the realized first-half tailwind is an

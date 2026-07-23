@@ -23,6 +23,11 @@ export interface DriverDefinition {
   max: number;
   step: number;
   estimateFlag?: boolean; // true => render a visible "Est." badge in the UI
+  // v2 quarterly: how this driver's annual rate distributes across Q1-Q4.
+  // Must sum to 1.0. Per-quarter growth = annualRate * 4 * weight_i (see
+  // NBCU_Dashboard_Build_Spec_v2_Quarterly.md Section 4.2).
+  seasonalityQ1Q2Q3Q4: [number, number, number, number];
+  seasonalityIsEstimate: boolean; // true for all v2 seasonality — always renders "Est." on the vector display
 }
 
 export interface PresetOption {
@@ -47,6 +52,18 @@ export interface LockedLineDefinition {
   value: number; // $M — fixed, not user-editable
 }
 
+// v2 quarterly: a pinned actual quarter — Q1 and Q2 2026 for every segment.
+// Reconciled to the primary-source 8-K exhibit (see
+// NBCU_Dashboard_Build_Spec_v2_Quarterly.md Section 7). No Versant carve-out
+// field — 2026 Comcast filings are already post-Versant since the separation
+// completed January 2, 2026.
+export interface QuarterlyActual {
+  quarter: "Q1" | "Q2";
+  revenue: number; // $M — as reported by Comcast, post-Versant already
+  adjustedEbitda: number; // $M — same
+  sourceExhibit: string; // e.g. "Q1 2026 8-K, ex99.1"
+}
+
 export interface SegmentBaseline {
   key: SegmentKey;
   name: string;
@@ -54,6 +71,8 @@ export interface SegmentBaseline {
   fy25AdjustedEbitda: number; // $M, pro-forma for Media
   revenueMixNote: string; // disclosure — internal revenue-mix split used to convert
                            // growth-rate drivers into dollars, always rendered with an Est. badge
+  q1Actual: QuarterlyActual;
+  q2Actual: QuarterlyActual;
   drivers: DriverDefinition[];
   presetDrivers?: PresetDriverDefinition[];
   lockedLines?: LockedLineDefinition[];
@@ -113,6 +132,18 @@ const MEDIA_BASELINE: SegmentBaseline = {
     "baseline) but still flagged as an estimate: Comcast doesn't explicitly bridge Peacock's " +
     "standalone reporting basis to the Media pro-forma, and the residual Linear/Other split is not " +
     "independently disclosed.",
+  q1Actual: {
+    quarter: "Q1",
+    revenue: 7_280,
+    adjustedEbitda: -426,
+    sourceExhibit: "Q1 2026 8-K, ex99.1 (ex991-3312026.htm), Content & Experiences table",
+  },
+  q2Actual: {
+    quarter: "Q2",
+    revenue: 5_691,
+    adjustedEbitda: 708,
+    sourceExhibit: "Q2 2026 8-K, ex99.1 (ex991-6302026.htm), Content & Experiences table",
+  },
   drivers: [
     {
       id: "peacockSubGrowth",
@@ -127,6 +158,8 @@ const MEDIA_BASELINE: SegmentBaseline = {
       min: 0,
       max: 40,
       step: 1,
+      seasonalityQ1Q2Q3Q4: [0.25, 0.20, 0.25, 0.30],
+      seasonalityIsEstimate: true,
     },
     {
       id: "peacockArpuGrowth",
@@ -139,6 +172,8 @@ const MEDIA_BASELINE: SegmentBaseline = {
       min: -5,
       max: 15,
       step: 0.5,
+      seasonalityQ1Q2Q3Q4: [0.25, 0.25, 0.25, 0.25],
+      seasonalityIsEstimate: true,
     },
     {
       id: "linearRevenueDecline",
@@ -153,6 +188,8 @@ const MEDIA_BASELINE: SegmentBaseline = {
       max: 0,
       step: 0.5,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.26, 0.24, 0.25, 0.25],
+      seasonalityIsEstimate: true,
     },
     {
       id: "nbaRightsDrag",
@@ -167,6 +204,8 @@ const MEDIA_BASELINE: SegmentBaseline = {
       max: 0,
       step: 0.1,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.30, 0.25, 0.15, 0.30],
+      seasonalityIsEstimate: true,
     },
     {
       id: "peacockLossNarrowing",
@@ -179,23 +218,22 @@ const MEDIA_BASELINE: SegmentBaseline = {
       min: 0,
       max: 3.0,
       step: 0.1,
+      seasonalityQ1Q2Q3Q4: [0.15, 0.40, 0.20, 0.25],
+      seasonalityIsEstimate: true,
     },
   ],
   presetDrivers: [
     {
-      id: "worldCupRevenue",
-      label: "FIFA World Cup 2026 Incremental Revenue",
+      id: "q3WorldCupResidual",
+      label: "Q3 2026 World Cup Residual",
       description:
-        "Sized off 2018 vs. 2026 Fox + Telemundo combined advertising revenue comps ($384.3M → " +
-        "$850M projected), discounted per the World Advertising Research Center's finding that " +
-        "U.S. World Cup ad lift is historically modest (0.4%–1% of total ad spend) and partly " +
-        "redistributive rather than net-new. Telemundo-specific share of the $850M combined figure " +
-        "is not disclosed — these three preset values are an estimate.",
+        "Semifinals + final + advertiser wrap-up landing in Q3. Sized off the remaining ~2 " +
+        "tournament weeks of the ~5 total, with a late-round premium for higher-tier games.",
       defaultOptionId: "base",
       options: [
-        { id: "low", label: "Low", value: 150 },
-        { id: "base", label: "Base", value: 275 },
-        { id: "high", label: "High", value: 400 },
+        { id: "low", label: "Low", value: 80 },
+        { id: "base", label: "Base", value: 130 },
+        { id: "high", label: "High", value: 180 },
       ],
       estimateFlag: true,
     },
@@ -209,6 +247,16 @@ const MEDIA_BASELINE: SegmentBaseline = {
         "first-quarter 2026 results (~$2.2 billion company-wide; Media-specific attribution is " +
         "an estimate). Locked — not adjustable.",
       value: 1_900,
+    },
+    {
+      id: "q2WorldCupRevenue",
+      label: "Q2 2026 World Cup Revenue",
+      description:
+        "Comcast Q2 2026 disclosure — Telemundo Spanish-language World Cup revenue realized in " +
+        "Q2 alone. Not adjustable. Source: Q2 2026 8-K, ex99.1 (ex991-6302026.htm): \"Excluding " +
+        "$440 million of incremental revenue from the FIFA World Cup, Media revenue increased " +
+        "15.6%.\"",
+      value: 440,
     },
   ],
 };
@@ -228,6 +276,18 @@ const STUDIOS_BASELINE: SegmentBaseline = {
     "publicly disclosed by Comcast, only qualitative direction; Studios also has real intercompany " +
     "eliminations with Media that make a clean external split especially hard to source. Unsourced " +
     "modeling assumption, not a disclosed figure.",
+  q1Actual: {
+    quarter: "Q1",
+    revenue: 3_426,
+    adjustedEbitda: 555,
+    sourceExhibit: "Q1 2026 8-K, ex99.1 (ex991-3312026.htm), Content & Experiences table",
+  },
+  q2Actual: {
+    quarter: "Q2",
+    revenue: 3_040,
+    adjustedEbitda: 202,
+    sourceExhibit: "Q2 2026 8-K, ex99.1 (ex991-6302026.htm), Content & Experiences table",
+  },
   drivers: [
     {
       id: "contentLicensingGrowth",
@@ -238,22 +298,28 @@ const STUDIOS_BASELINE: SegmentBaseline = {
       min: 0,
       max: 15,
       step: 0.5,
+      seasonalityQ1Q2Q3Q4: [0.25, 0.25, 0.25, 0.25],
+      seasonalityIsEstimate: true,
     },
     {
       id: "theatricalSlatePerformance",
       label: "Theatrical Slate Performance",
       description:
-        "2026's confirmed slate includes Christopher Nolan's 'The Odyssey' (event-film tier, " +
-        "comparable to Oppenheimer's $976M), the 'Fast & Furious' franchise finale, a sequel to " +
-        "the $1.36 billion-grossing Super Mario Bros. Movie, and another Illumination 'Despicable " +
-        "Me' franchise entry. A judgment-based magnitude grounded in named, real titles — not a " +
-        "disclosed NBCUniversal figure.",
+        "2026's confirmed slate: Christopher Nolan's 'The Odyssey' (released July 17, 2026 — " +
+        "Nolan's biggest global opening ever at $264M worldwide), 'Minions & Monsters' (released " +
+        "July 1, 2026), and 'The Super Mario Galaxy Movie' (released April 1, 2026, $131M domestic " +
+        "opening). Note: 'Fast & Furious 11' is NOT a 2026 release — retitled 'Fast Forever' and " +
+        "redated to March 17, 2028 — and is excluded from this slate. A judgment-based magnitude " +
+        "grounded in named, real titles and their actual/confirmed release dates — not a disclosed " +
+        "NBCUniversal figure.",
       unit: "percent",
       defaultValue: 10,
       min: -10,
       max: 20,
       step: 0.5,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.10, 0.30, 0.35, 0.25],
+      seasonalityIsEstimate: true,
     },
     {
       id: "contentProductionCostInflation",
@@ -265,6 +331,8 @@ const STUDIOS_BASELINE: SegmentBaseline = {
       max: 0,
       step: 0.1,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.25, 0.25, 0.25, 0.25],
+      seasonalityIsEstimate: true,
     },
     {
       id: "slateSizeMarketingSpendGrowth",
@@ -279,6 +347,8 @@ const STUDIOS_BASELINE: SegmentBaseline = {
       max: 0,
       step: 0.1,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.20, 0.30, 0.30, 0.20],
+      seasonalityIsEstimate: true,
     },
   ],
 };
@@ -297,6 +367,18 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
     "split used to convert growth-rate drivers into dollars. Comcast discloses only qualitative " +
     "direction (e.g. Epic Universe driving growth), not a percentage breakdown. Unsourced modeling " +
     "assumption, not a disclosed figure.",
+  q1Actual: {
+    quarter: "Q1",
+    revenue: 2_331,
+    adjustedEbitda: 551,
+    sourceExhibit: "Q1 2026 8-K, ex99.1 (ex991-3312026.htm), Content & Experiences table",
+  },
+  q2Actual: {
+    quarter: "Q2",
+    revenue: 2_413,
+    adjustedEbitda: 609,
+    sourceExhibit: "Q2 2026 8-K, ex99.1 (ex991-6302026.htm), Content & Experiences table",
+  },
   drivers: [
     {
       id: "epicAttendanceRamp",
@@ -310,6 +392,8 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       min: 0,
       max: 40,
       step: 1,
+      seasonalityQ1Q2Q3Q4: [0.20, 0.30, 0.30, 0.20],
+      seasonalityIsEstimate: true,
     },
     {
       id: "perCapitaSpendingGrowth",
@@ -320,6 +404,8 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       min: 0,
       max: 10,
       step: 0.5,
+      seasonalityQ1Q2Q3Q4: [0.25, 0.25, 0.25, 0.25],
+      seasonalityIsEstimate: true,
     },
     {
       id: "legacyParksGrowth",
@@ -331,6 +417,8 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       max: 10,
       step: 0.5,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.20, 0.30, 0.30, 0.20],
+      seasonalityIsEstimate: true,
     },
     {
       id: "epicLaunchCostRollOff",
@@ -348,6 +436,8 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       max: 4.0,
       step: 0.1,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.35, 0.25, 0.20, 0.20],
+      seasonalityIsEstimate: true,
     },
     {
       id: "universalKidsResortLaunchCostDrag",
@@ -364,8 +454,31 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       max: 0,
       step: 0.1,
       estimateFlag: true,
+      seasonalityQ1Q2Q3Q4: [0.20, 0.25, 0.30, 0.25],
+      seasonalityIsEstimate: true,
     },
   ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Prior FY 2026 Forecast — v1's frozen base case (shipped July 3, 2026)
+//
+// Pulled live from nbcu-segment-forecast-dashboard.vercel.app on 2026-07-23,
+// all three tabs, after clicking "Reset all drivers to default values" to
+// confirm true default state (identical before/after reset — no stale
+// slider state). Not driver-adjustable; frozen forever regardless of v2
+// slider mechanics. See NBCU_Dashboard_Build_Spec_v2_Quarterly.md Section 4.4
+// for the Media discrepancy note (live figures differ slightly from an
+// earlier spec draft; live figures are what's used here).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PRIOR_FY26_FORECAST: Record<
+  SegmentKey,
+  { revenue: number; adjustedEbitda: number; margin: number }
+> = {
+  media: { revenue: 22_733, adjustedEbitda: 1_881, margin: 8.3 },
+  studios: { revenue: 11_822, adjustedEbitda: 792, margin: 6.7 },
+  themeParks: { revenue: 10_581, adjustedEbitda: 3_471, margin: 32.8 },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -394,7 +507,7 @@ export const NBCU_CONFIG: CompanyConfig = {
   companyName: "NBCUniversal (post-Versant, within Comcast's Content & Experiences segment)",
   parentTicker: "CMCSA",
   baselineYear: "FY25 (pro-forma)",
-  forecastYear: "FY26E",
+  forecastYear: "FY26F",
   segments: [MEDIA_BASELINE, STUDIOS_BASELINE, THEME_PARKS_BASELINE],
 
   proFormaDisclosure:

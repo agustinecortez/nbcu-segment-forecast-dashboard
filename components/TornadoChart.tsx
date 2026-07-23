@@ -13,7 +13,7 @@ import {
   Cell,
 } from "recharts";
 import { DriverValues, SegmentKey } from "@/lib/nbcuData";
-import { computeSegmentTornadoBars, TornadoBar } from "@/lib/forecastMath";
+import { computeSegmentQuarterlyTornadoBars, TornadoBar } from "@/lib/forecastMath";
 
 interface TornadoChartProps {
   segmentKey: SegmentKey;
@@ -35,7 +35,7 @@ function shortLabel(label: string): string {
     "Linear Revenue Decline": "Linear Decline",
     "NBA Rights Cost Step-Up Drag": "NBA Rights Drag",
     "Peacock Loss Narrowing (Path to Breakeven)": "Peacock Narrowing",
-    "FIFA World Cup 2026 Incremental Revenue": "World Cup Revenue",
+    "Q3 2026 World Cup Residual": "Q3 World Cup Residual",
     "Content Licensing Growth": "Content Licensing",
     "Theatrical Slate Performance": "Theatrical Slate",
     "Content Production Cost Inflation": "Content Cost Inflation",
@@ -107,15 +107,19 @@ function CustomTooltip({
 /**
  * Segment-specific sensitivity tornado (Addendum v3 Section 2 — replaces the
  * single consolidated 13-bar chart from Addendum v2). Each segment gets its
- * own chart against its own FY26E Adjusted EBITDA, sorted independently by
- * swing. Computed via computeSegmentTornadoBars, which calls the same
- * compute<Segment>Forecast function used by the metric cards and bridge —
- * single source of truth (Section 6). The realized first-half tailwind is
- * excluded from Media's chart by construction.
+ * own chart, sorted independently by swing. v2 (spec Section 6.2): the
+ * baseline is the FY26 Forecast headline (Q1 actual + Q2 actual + Q3/Q4
+ * forecast), and perturbing a driver only recomputes Q3/Q4 — Q1/Q2 stay
+ * pinned by construction inside computeSegmentQuarterlyTornadoBars, which
+ * calls the same compute<Segment>QuarterlyForecast function used by the
+ * metric cards and bridge (single source of truth, Section 6). Locked event
+ * lines are excluded from every chart by construction (never enumerated as
+ * sensitivity drivers); the Q3 World Cup Residual preset is included since
+ * it's still a forecast assumption.
  */
 export default function TornadoChart({ segmentKey, drivers, title, subtitle }: TornadoChartProps) {
   const bars: TornadoBar[] = useMemo(
-    () => computeSegmentTornadoBars(segmentKey, drivers),
+    () => computeSegmentQuarterlyTornadoBars(segmentKey, drivers),
     [segmentKey, drivers]
   );
 
@@ -220,6 +224,12 @@ export default function TornadoChart({ segmentKey, drivers, title, subtitle }: T
         <span className="text-xs ml-auto" style={{ color: "var(--color-text-tertiary)" }}>
           ±10% relative to current driver values
         </span>
+      </div>
+
+      <div className="px-6 py-2 border-t" style={{ borderColor: "var(--color-border)" }}>
+        <p className="text-xs italic" style={{ color: "var(--color-text-tertiary)" }}>
+          Q1 & Q2 actuals unchanged; sensitivity comes from Q3 & Q4 forecast portion.
+        </p>
       </div>
     </div>
   );

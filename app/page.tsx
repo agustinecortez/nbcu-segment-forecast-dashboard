@@ -8,6 +8,7 @@ import MetricCards from "@/components/MetricCards";
 import MarginBridgeChart from "@/components/MarginBridgeChart";
 import TornadoChart from "@/components/TornadoChart";
 import ModelingLimitationFootnote from "@/components/ModelingLimitationFootnote";
+import OverlapDisclosureCallout from "@/components/OverlapDisclosureCallout";
 import VersantExclusionFootnote from "@/components/VersantExclusionFootnote";
 import AboutCard from "@/components/AboutCard";
 import Footer from "@/components/Footer";
@@ -37,18 +38,18 @@ const BRIDGE_TITLE: Record<SegmentKey, string> = {
 };
 
 const TORNADO_TITLE: Record<SegmentKey, string> = {
-  media: "Media FY26E Adjusted EBITDA Sensitivity",
-  studios: "Studios FY26E Adjusted EBITDA Sensitivity",
-  themeParks: "Theme Parks FY26E Adjusted EBITDA Sensitivity",
+  media: "Media FY26F Adjusted EBITDA Sensitivity",
+  studios: "Studios FY26F Adjusted EBITDA Sensitivity",
+  themeParks: "Theme Parks FY26F Adjusted EBITDA Sensitivity",
 };
 
+// Spec Section 6.2 — single fixed template, segment name swapped per tab.
 const TORNADO_SUBTITLE: Record<SegmentKey, string> = {
-  media:
-    "Impact on Media FY26E Adjusted EBITDA of ±10% relative shift per driver · sorted by total " +
-    "swing · excludes the locked realized event tailwind",
-  studios: "Impact on Studios FY26E Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
+  media: "Impact on Media FY26 Forecast Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
+  studios:
+    "Impact on Studios FY26 Forecast Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
   themeParks:
-    "Impact on Theme Parks FY26E Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
+    "Impact on Theme Parks FY26 Forecast Adjusted EBITDA of ±10% relative shift per driver · sorted by total swing",
 };
 
 export default function DashboardPage() {
@@ -110,6 +111,8 @@ export default function DashboardPage() {
             priorFy26Forecast={activeForecast.priorFy26Forecast}
             accentColor={accentColor}
           />
+
+          {activeSegment === "media" && <OverlapDisclosureCallout drivers={drivers} />}
 
           <MarginBridgeChart title={BRIDGE_TITLE[activeSegment]} bridge={activeBridge} accentColor={accentColor} />
 

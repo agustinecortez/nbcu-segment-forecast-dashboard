@@ -53,6 +53,8 @@ The v1 dashboard was an annual-only model. Q2 2026's earnings release (July 23, 
 
 v2 preserves v1's methodology framework, adds Q1 and Q2 as locked actuals, and keeps v1's exact base case values in a "Prior FY 2026 Forecast" column on every metric card. The miscalibrations aren't hidden — they're the story.
 
+The Media segment makes this concrete: the live v2 FY26 Forecast Adjusted EBITDA is **$659M**, against v1's **$1,881M** Prior FY 2026 Forecast — both numbers sitting side by side on the same metric card. The miscalibration isn't a footnote here; it's a number you can read directly off the dashboard.
+
 ## Disclosure
 
 Forecast scenarios are driver-based projections and do not represent company guidance. This dashboard is presented for educational and methodology demonstration purposes only and is not investment advice or a recommendation to buy, hold, or sell any security. It is an independent analytical exercise and is not an official or endorsed publication of Comcast Corporation, NBCUniversal, or Versant Media Group.

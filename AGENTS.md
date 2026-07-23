@@ -44,7 +44,10 @@ spec itself (§7, §1.2, §1.3) before the code below was written:
 - **Q1/Q2 2026 actuals** reconciled to Comcast's own 8-K exhibits (Exhibit 99.1,
   `ex991-3312026.htm` and `ex991-6302026.htm`, both on EDGAR) — pulled via `curl` with a
   compliant `User-Agent` header (EDGAR 403s or silently empty-returns on a generic one;
-  add `-L` too, since EDGAR 301-redirects a zero-padded CIK).
+  add `-L` too, since EDGAR 301-redirects a zero-padded CIK). Both exhibits are saved
+  locally under `preflight/` (`preflight/q1_2026_8k.html`, `preflight/q2_2026_8k.html`,
+  gitignored — raw source evidence, not app code) as the paper trail behind every pinned
+  `q1Actual`/`q2Actual` figure in `lib/nbcuData.ts`.
 - **2026 theatrical release calendar** researched — one correction worth remembering:
   **Fast & Furious 11 is not a 2026 release** (redated to March 17, 2028, retitled "Fast
   Forever"); it was in an earlier spec draft's assumption list and was removed.

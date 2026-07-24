@@ -30,7 +30,7 @@ export default function Header({ onAboutOpen, onReset }: HeaderProps) {
           className="hidden md:inline-flex text-xs px-2 py-0.5 rounded font-medium flex-shrink-0"
           style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.75)" }}
         >
-          CMCSA · FY25 Pro Forma → FY26E
+          CMCSA · FY25 Pro Forma → FY26F
         </span>
       </div>
 

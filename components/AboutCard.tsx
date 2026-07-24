@@ -155,8 +155,9 @@ export default function AboutCard({ isOpen, onClose }: AboutCardProps) {
                 <span className="font-medium" style={{ color: "var(--color-text-primary)" }}>
                   Forecast horizon:
                 </span>{" "}
-                Fiscal year 2025 pro-forma baseline to a fiscal year 2026 estimate only — no fiscal
-                year 2027 or 2028 extension.
+                Fiscal year 2025 pro-forma baseline to a fiscal year 2026 forecast only — no fiscal
+                year 2027 or 2028 extension. Q1 and Q2 2026 are pinned actuals; Q3 and Q4 2026 are
+                driver-adjustable.
               </li>
             </ul>
           </div>

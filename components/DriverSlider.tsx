@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Info } from "lucide-react";
 import { DriverDefinition } from "@/lib/nbcuData";
 import EstimateBadge from "./EstimateBadge";
+import SeasonalitySparkline from "./SeasonalitySparkline";
 
 interface DriverSliderProps {
   driver: DriverDefinition;
@@ -207,6 +208,8 @@ export default function DriverSlider({ driver, value, onChange, accentColor }: D
           {formatValue(driver.max)}
         </span>
       </div>
+
+      <SeasonalitySparkline weights={driver.seasonalityQ1Q2Q3Q4} accentColor={accentColor} />
 
       {tooltipVisible && anchorRect && (
         <PortalTooltip text={driver.description} anchorRect={anchorRect} />

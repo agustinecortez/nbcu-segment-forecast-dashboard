@@ -39,6 +39,13 @@
   --color-estimate-bg: #FDF3E0;
   --color-estimate-text: #9A6A1A;
   --color-estimate-border: #E8CB93;
+
+  /* Locked — pinned-actual quarters (Q1/Q2) and the informational event
+     lines already embedded inside them (v2 quarterly rebuild) */
+  --color-locked: #3F62A8;
+  --color-locked-bg: #EAF1FB;
+  --color-locked-border: #C7D9F0;
+  --color-locked-text: #2C4A7C;
 }
 
 @theme inline {

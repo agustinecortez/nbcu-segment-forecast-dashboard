@@ -244,11 +244,10 @@ const MEDIA_BASELINE: SegmentBaseline = {
       id: "realizedH1Tailwind",
       label: "Realized First-Half Event Tailwind",
       description:
-        "Milan Cortina Winter Olympics + Super Bowl 60, already reported in Comcast's " +
-        "first-quarter 2026 results (~$2.2 billion company-wide; Media-specific attribution is " +
-        "an estimate). Locked — not adjustable. This event's revenue is already reflected in " +
-        "the pinned Q1 actual sourced from Comcast's 8-K. Shown here so you can see what's " +
-        "inside the actual quarter, not as an additive line.",
+        "Milan Cortina Winter Olympics + Super Bowl 60, reported in Comcast's Q1 2026 results " +
+        "(~$2.2B company-wide; the $1.9B Media-specific attribution shown here is an estimate). " +
+        "Source: Q1 2026 8-K, Exhibit 99.1 (ex991-3312026.htm) — Media revenue table shows a " +
+        "$1,420M Milan Cortina Olympics line and a $758M Super Bowl LX line for Q1.",
       value: 1_900,
       tag: "Included in Q1 Actual",
     },
@@ -256,12 +255,12 @@ const MEDIA_BASELINE: SegmentBaseline = {
       id: "q2WorldCupRevenue",
       label: "Q2 2026 World Cup Revenue",
       description:
-        "Comcast Q2 2026 disclosure — Telemundo Spanish-language World Cup revenue realized in " +
-        "Q2 alone. Not adjustable. Source: Q2 2026 8-K, ex99.1 (ex991-6302026.htm): \"Excluding " +
-        "$440 million of incremental revenue from the FIFA World Cup, Media revenue increased " +
-        "15.6%.\" This event's revenue is already reflected in the pinned Q2 actual sourced from " +
-        "Comcast's 8-K. Shown here so you can see what's inside the actual quarter, not as an " +
-        "additive line.",
+        "The Q2 slice of FIFA World Cup revenue (Telemundo Spanish-language broadcast), as " +
+        "reported by Comcast for the quarter. Source: Q2 2026 8-K, Exhibit 99.1 " +
+        "(ex991-6302026.htm): \"Excluding $440 million of incremental revenue from the FIFA " +
+        "World Cup, Media revenue increased 15.6%.\" The remaining tournament weeks land in Q3 " +
+        "— see the Q3 World Cup Residual preset above for that portion, which is still a live " +
+        "driver.",
       value: 440,
       tag: "Included in Q2 Actual",
     },

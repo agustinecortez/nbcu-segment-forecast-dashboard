@@ -17,18 +17,22 @@ export default function ModelingLimitationFootnote() {
             Modeling limitation — Peacock narrowing / World Cup overlap
           </p>
           <p className="text-xs leading-relaxed" style={{ color: "var(--color-estimate-text)" }}>
-            Peacock loss narrowing and World Cup 2026 revenue may partially overlap. Comcast&rsquo;s
-            chief financial officer gave second-quarter 2026 profitability guidance in April 2026,
-            after Telemundo had already announced 90% of World Cup ad inventory sold — so some of
-            that guidance may already assume World Cup momentum, even though most of the tournament
-            falls in the third quarter. Public disclosure does not allow a clean separation. Check
-            against Comcast&rsquo;s actual second-quarter 2026 earnings release (expected late July
-            2026) to confirm the two drivers are additive rather than overlapping.
+            Peacock loss narrowing and World Cup revenue overlap in Q2 2026 — a risk v1 flagged
+            before Q2 filed, now confirmed by the actuals: Comcast&rsquo;s Q2 2026 8-K reports
+            Peacock&rsquo;s first-ever quarterly profit of $189M landing in the same quarter as
+            $440M of Telemundo World Cup revenue, and the disclosure notes the Peacock figure
+            &ldquo;includes amounts attributable to the FIFA World Cup.&rdquo; Q1 and Q2 are pinned
+            actuals here, so this overlap is embedded in reported fact, not double-counted; the
+            live Q3 World Cup Residual preset and the Peacock Loss Narrowing slider are the only
+            places you can still make the two drivers add together — the callout above the bridge
+            fires when a specific slider combination trips the risk.
           </p>
           <p className="text-xs leading-relaxed mt-2" style={{ color: "var(--color-estimate-text)" }}>
-            Known gap, not modeled: Peacock subscription revenue from World Cup-driven sign-ups is
-            not captured anywhere in this model — the $850M comp used to size the World Cup driver
-            is advertising revenue only. This is an under-count, not a double count.
+            Known gap, not modeled separately: Peacock subscription revenue from World Cup-driven
+            sign-ups is not called out as its own line — the Q3 World Cup Residual preset is sized
+            off advertising revenue from the remaining tournament weeks, not subscription lift. Q2
+            actuals implicitly include any subscription contribution that landed in the pinned
+            quarter, so this is only a gap for Q3/Q4 estimation, not for the H1 total.
           </p>
         </div>
       </div>

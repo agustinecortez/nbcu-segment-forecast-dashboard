@@ -63,12 +63,16 @@ spec itself (§7, §1.2, §1.3) before the code below was written:
   already embedded in the reported numbers, so adding them again would double-count.
   Confirmed correct by Agustin; do not change `computeMediaQuarterlyForecast`'s
   treatment of these two locked lines back to additive.
-- **`PRIOR_FY26_FORECAST` values** were pulled live from
+- **`PRIOR_FY26_FORECAST` values** (v2 only, removed in v2.1) were pulled live from
   `nbcu-segment-forecast-dashboard.vercel.app` (all three tabs, after clicking "Reset all
   drivers to default values" to confirm true default state) rather than from an earlier
-  spec draft's pre-filled Media numbers, which didn't match the live site. If you ever
-  see a mismatch here again, trust the live site over a spec draft and flag it — don't
-  silently reconcile.
+  spec draft's pre-filled Media numbers, which didn't match the live site. v2.1
+  subsequently removed the Prior FY 2026 Forecast column entirely — see
+  `NBCU_Dashboard_Build_Spec_v2.1_H1_Recalibration.md` for the rationale. The historical
+  decision about which source of v1's numbers to use remains as documentation; the values
+  themselves are no longer live in the app. The transferable rule still applies: if you
+  ever see a mismatch between a live shipped artifact and an internal spec draft, trust
+  the live site over the draft and flag it — don't silently reconcile.
 
 ## Scope discipline — don't drift without an explicit ask
 
@@ -93,7 +97,9 @@ spec itself (§7, §1.2, §1.3) before the code below was written:
   seasonalityQ1Q2Q3Q4), preset drivers (`q3WorldCupResidual`), locked lines
   (`realizedH1Tailwind`, `q2WorldCupRevenue` — both informational only, see "Judgment
   calls" above), segment baselines plus their `q1Actual`/`q2Actual` pinned quarters,
-  `PRIOR_FY26_FORECAST`, revenue-mix constants, and all disclosure text.
+  revenue-mix constants, and all disclosure text. (The `PRIOR_FY26_FORECAST` constant
+  existed in v2 to feed the Prior FY 2026 Forecast metric-card row; both the constant
+  and the row were removed in v2.1 — see the H1 recalibration spec.)
 - `lib/forecastMath.ts` — pure calculation engine, no UI dependencies.
   `computeMediaQuarterlyForecast`, `computeStudiosQuarterlyForecast`, and
   `computeThemeParksQuarterlyForecast` are each the **single source of truth** for their

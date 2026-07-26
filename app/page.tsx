@@ -108,7 +108,6 @@ export default function DashboardPage() {
             segmentName={activeConfigSegment.name}
             baseline={activeForecast.baseline}
             fy26Forecast={activeForecast.fy26Forecast}
-            priorFy26Forecast={activeForecast.priorFy26Forecast}
             accentColor={accentColor}
           />
 

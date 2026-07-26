@@ -2,7 +2,7 @@
 
 An interactive driver-based financial scenario tool for NBCUniversal's three core segments — Media, Studios, and Theme Parks — as reported within Comcast Corporation's Content & Experiences segment, reflecting NBCUniversal's post-Versant corporate structure following the January 2, 2026 spin-off.
 
-**v2 (July 2026): quarterly rebuild.** Q1 and Q2 2026 are now pinned actuals, sourced to Comcast's own Q1 and Q2 2026 8-K filings — Q3 and Q4 2026 remain driver-adjustable forecast, and the FY26 Forecast headline is the sum of the four quarters. v1's July 3, 2026 base case is preserved on every metric card as a frozen "Prior FY 2026 Forecast" comparison column. See "What the actuals taught us" below for what changed and why.
+**v2 (July 2026): quarterly rebuild.** Q1 and Q2 2026 are now pinned actuals, sourced to Comcast's own Q1 and Q2 2026 8-K filings — Q3 and Q4 2026 remain driver-adjustable forecast, and the FY26 Forecast headline is the sum of the four quarters. **v2.1 (July 2026):** Q3 and Q4 driver defaults recalibrated from H1 evidence; the earlier "Prior FY 2026 Forecast" comparison column was removed (see "What the actuals taught us" below for how v1's forecast performed against Q1/Q2 actuals and why v2.1 recalibrated the Q3/Q4 driver defaults).
 
 ## Live URL
 
@@ -39,7 +39,6 @@ Baseline and driver figures sourced from:
 - The Hollywood Reporter's annual studio profit report (calendar year 2025 studio industry commentary)
 - Comcast's Q1 2026 8-K, Exhibit 99.1 (`ex991-3312026.htm`, filed April 23, 2026, EDGAR) and Q2 2026 8-K, Exhibit 99.1 (`ex991-6302026.htm`, filed July 23, 2026, EDGAR) — Content & Experiences segment tables, source for every pinned Q1/Q2 2026 actual, the $440M Q2 World Cup revenue disclosure, and the $189M Peacock quarterly profit disclosure
 - The 2026 NBCUniversal theatrical release calendar (Variety, Deadline, and Nintendo/Illumination press materials) — source for the Theatrical Slate Performance seasonality vector
-- v1's shipped defaults at `nbcu-segment-forecast-dashboard.vercel.app` (July 3, 2026 base case) — source for the frozen "Prior FY 2026 Forecast" column
 
 Several drivers — the internal Media, Studios, and Theme Parks revenue-mix splits; Theatrical Slate Performance; the Universal Kids Resort launch-cost drag — are the author's constructed estimates rather than disclosed NBCUniversal or Comcast figures, and are labeled as such directly in the dashboard.
 
@@ -51,9 +50,7 @@ The v1 dashboard was an annual-only model. Q2 2026's earnings release (July 23, 
 - **Studios margin compression didn't materialize.** v1 built in a -3.0pt margin drag (content cost inflation + slate/marketing spend). H1 actuals show Studios margin at 11.8% — higher than the FY25 baseline of 9.7%, not lower.
 - **Theme Parks margin expansion didn't materialize either.** v1 assumed the Epic Universe launch-cost roll-off would drive margin to 32.8% in FY26. H1 came in at 24.7%, and Q2 EBITDA declined -5.1% YoY as Comcast flagged "near-term softness."
 
-v2 preserves v1's methodology framework, adds Q1 and Q2 as locked actuals, and keeps v1's exact base case values in a "Prior FY 2026 Forecast" column on every metric card. The miscalibrations aren't hidden — they're the story.
-
-The Media segment makes this concrete: the live v2 FY26 Forecast Adjusted EBITDA is **$659M**, against v1's **$1,881M** Prior FY 2026 Forecast — both numbers sitting side by side on the same metric card. The miscalibration isn't a footnote here; it's a number you can read directly off the dashboard.
+v2 preserved v1's methodology framework and initially showed v1's exact base case values in a "Prior FY 2026 Forecast" column on every metric card. **v2.1 removed that column** and recalibrated the Q3/Q4 driver defaults from H1 evidence — the gaps between v1 and any post-actuals view were too wide across the three segments (and in mixed directions per segment) for a side-by-side card comparison to read as forecasting discipline rather than as an unresolved contradiction. The v1 miscalibrations named above are still the story; they're just told narratively in this section rather than presented as live UI on the dashboard. Per-driver rationale for the v2.1 recalibration lives in `NBCU_Dashboard_Build_Spec_v2.1_H1_Recalibration.md`.
 
 ## Disclosure
 

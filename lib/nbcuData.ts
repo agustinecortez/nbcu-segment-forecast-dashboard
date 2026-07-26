@@ -169,7 +169,7 @@ const MEDIA_BASELINE: SegmentBaseline = {
         "Fiscal year 2025 revenue grew +10% on +22% subscriber growth, implying roughly flat to " +
         "down average revenue per user.",
       unit: "percent",
-      defaultValue: 3,
+      defaultValue: 6,
       min: -5,
       max: 15,
       step: 0.5,
@@ -200,7 +200,7 @@ const MEDIA_BASELINE: SegmentBaseline = {
         "Adjusted EBITDA decline; no isolated dollar figure published, so this is a labeled " +
         "assumption applied as a margin adjuster.",
       unit: "points",
-      defaultValue: -2.5,
+      defaultValue: -4.0,
       min: -5.0,
       max: 0,
       step: 0.1,
@@ -215,7 +215,7 @@ const MEDIA_BASELINE: SegmentBaseline = {
         "Comcast's chief financial officer guided Peacock to approach profitability in the " +
         "second quarter of fiscal year 2026.",
       unit: "points",
-      defaultValue: 1.5,
+      defaultValue: 3.0,
       min: 0,
       max: 3.0,
       step: 0.1,
@@ -299,7 +299,7 @@ const STUDIOS_BASELINE: SegmentBaseline = {
       label: "Content Licensing Growth",
       description: "Fiscal year 2025 revenue +1.7%.",
       unit: "percent",
-      defaultValue: 5,
+      defaultValue: 1,
       min: 0,
       max: 15,
       step: 0.5,
@@ -318,7 +318,7 @@ const STUDIOS_BASELINE: SegmentBaseline = {
         "grounded in named, real titles and their actual/confirmed release dates — not a disclosed " +
         "NBCUniversal figure.",
       unit: "percent",
-      defaultValue: 10,
+      defaultValue: 15,
       min: -10,
       max: 20,
       step: 0.5,
@@ -331,7 +331,7 @@ const STUDIOS_BASELINE: SegmentBaseline = {
       label: "Content Production Cost Inflation",
       description: "Industry-wide talent and production budget inflation.",
       unit: "points",
-      defaultValue: -1.5,
+      defaultValue: 0,
       min: -4.0,
       max: 0,
       step: 0.1,
@@ -347,7 +347,7 @@ const STUDIOS_BASELINE: SegmentBaseline = {
         "bottom line dropped in calendar year 2025, driven by a bigger slate — more titles " +
         "released means more marketing and production spend spread across more films.",
       unit: "points",
-      defaultValue: -1.5,
+      defaultValue: 0,
       min: -5.0,
       max: 0,
       step: 0.1,
@@ -417,7 +417,7 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       label: "Legacy Domestic Parks Growth",
       description: "Not separately disclosed from the Epic Universe ramp.",
       unit: "percent",
-      defaultValue: 2,
+      defaultValue: 0,
       min: -5,
       max: 10,
       step: 0.5,
@@ -436,7 +436,7 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
         "Universe's first full year of operation and one-time launch costs roll off. A labeled, " +
         "conservative assumption, not a disclosed figure.",
       unit: "points",
-      defaultValue: 2.5,
+      defaultValue: 0,
       min: 0,
       max: 4.0,
       step: 0.1,
@@ -454,7 +454,7 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
         "smaller assumed scale since Kids Resort is not Epic Universe-sized. No disclosed cost " +
         "figure exists for this specific opening.",
       unit: "points",
-      defaultValue: -1.0,
+      defaultValue: -2.5,
       min: -3.0,
       max: 0,
       step: 0.1,
@@ -463,27 +463,6 @@ const THEME_PARKS_BASELINE: SegmentBaseline = {
       seasonalityIsEstimate: true,
     },
   ],
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Prior FY 2026 Forecast — v1's frozen base case (shipped July 3, 2026)
-//
-// Pulled live from nbcu-segment-forecast-dashboard.vercel.app on 2026-07-23,
-// all three tabs, after clicking "Reset all drivers to default values" to
-// confirm true default state (identical before/after reset — no stale
-// slider state). Not driver-adjustable; frozen forever regardless of v2
-// slider mechanics. See NBCU_Dashboard_Build_Spec_v2_Quarterly.md Section 4.4
-// for the Media discrepancy note (live figures differ slightly from an
-// earlier spec draft; live figures are what's used here).
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const PRIOR_FY26_FORECAST: Record<
-  SegmentKey,
-  { revenue: number; adjustedEbitda: number; margin: number }
-> = {
-  media: { revenue: 22_733, adjustedEbitda: 1_881, margin: 8.3 },
-  studios: { revenue: 11_822, adjustedEbitda: 792, margin: 6.7 },
-  themeParks: { revenue: 10_581, adjustedEbitda: 3_471, margin: 32.8 },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -561,8 +540,6 @@ export const NBCU_CONFIG: CompanyConfig = {
     "2026 NBCUniversal theatrical release calendar — Variety, Deadline, and Nintendo/Illumination " +
       "press materials (The Odyssey, The Super Mario Galaxy Movie, Minions & Monsters release dates " +
       "and opening-weekend box office)",
-    "v1 shipped defaults, nbcu-segment-forecast-dashboard.vercel.app (July 3, 2026 base case, " +
-      "source for the frozen Prior FY 2026 Forecast column)",
   ],
 
   githubUrl: "https://github.com/agustinecortez/nbcu-segment-forecast-dashboard",
@@ -593,11 +570,18 @@ export const NBCU_CONFIG: CompanyConfig = {
     "to any 2026 number. The subtractive pro-forma method that produced the FY25 baseline still " +
     "stands as the way that historical anchor was constructed, but it does not apply going " +
     "forward. The FY26 Forecast headline shown in each metric card is the sum of the four " +
-    "quarters. A third row on each card, \"Prior FY 2026 Forecast,\" preserves the July 3, 2026 v1 " +
-    "base case for comparison — that column is frozen and does not respond to slider changes. " +
+    "quarters. Each card shows two rows: the FY25 pro-forma baseline and the live FY26 Forecast. " +
+    "An earlier v2 iteration included a third \"Prior FY 2026 Forecast\" row preserving v1's " +
+    "July 3, 2026 base case; that comparison was removed in v2.1 because the gaps between v1's " +
+    "pre-actuals forecast and any defensible current view were too wide for a side-by-side card " +
+    "presentation to read as intended. The v1→v2 forecasting-retrospective story lives in the " +
+    "README's \"what the actuals taught us\" section instead. " +
     "Terminology throughout has shifted from \"Estimate\" to \"Forecast\"; the \"Est.\" badge is " +
     "retained on modeling assumptions that are not independently disclosed (revenue-mix splits, " +
-    "seasonality vectors, NBA drag magnitude, Q3 World Cup residual sizing).",
+    "seasonality vectors, NBA drag magnitude, Q3 World Cup residual sizing). " +
+    "v2.1 update (July 2026): Q3 and Q4 driver defaults recalibrated from H1 evidence — see " +
+    "NBCU_Dashboard_Build_Spec_v2.1_H1_Recalibration.md for the per-driver rationale and " +
+    "supporting 8-K citations.",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

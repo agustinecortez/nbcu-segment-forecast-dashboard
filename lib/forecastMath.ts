@@ -30,7 +30,6 @@ import {
   SegmentKey,
   SegmentBaseline,
   DriverDefinition,
-  PRIOR_FY26_FORECAST,
   getSensitivityDriversForSegment,
   getSegment,
 } from "./nbcuData";
@@ -92,7 +91,6 @@ export interface SegmentForecastV2 {
   q3: QuarterlyForecast; // driver-adjustable
   q4: QuarterlyForecast; // driver-adjustable
   fy26Forecast: SegmentForecast; // q1 + q2 + q3 + q4, margin recomputed
-  priorFy26Forecast: SegmentForecast; // frozen v1 base case
   bridge: DollarBridgeStep[]; // FY25 -> Q1 -> Q2 -> Q3 -> Q4 -> FY26F, 6 steps
 }
 
@@ -212,7 +210,6 @@ export function computeMediaQuarterlyForecast(drivers: DriverValues): SegmentFor
     q3,
     q4,
     fy26Forecast,
-    priorFy26Forecast: PRIOR_FY26_FORECAST.media,
     bridge: buildSixStepBridge(fy25Ebitda, fy25Margin, q1, q2, q3, q4, fy26Forecast),
   };
 }
@@ -285,7 +282,6 @@ export function computeStudiosQuarterlyForecast(drivers: DriverValues): SegmentF
     q3,
     q4,
     fy26Forecast,
-    priorFy26Forecast: PRIOR_FY26_FORECAST.studios,
     bridge: buildSixStepBridge(fy25Ebitda, fy25Margin, q1, q2, q3, q4, fy26Forecast),
   };
 }
@@ -355,7 +351,6 @@ export function computeThemeParksQuarterlyForecast(drivers: DriverValues): Segme
     q3,
     q4,
     fy26Forecast,
-    priorFy26Forecast: PRIOR_FY26_FORECAST.themeParks,
     bridge: buildSixStepBridge(fy25Ebitda, fy25Margin, q1, q2, q3, q4, fy26Forecast),
   };
 }

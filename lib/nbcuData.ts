@@ -246,7 +246,7 @@ const MEDIA_BASELINE: SegmentBaseline = {
       description:
         "Milan Cortina Winter Olympics + Super Bowl 60, reported in Comcast's Q1 2026 results " +
         "(~$2.2B company-wide; the $1.9B Media-specific attribution shown here is an estimate). " +
-        "Source: Q1 2026 8-K, Exhibit 99.1 (ex991-3312026.htm) — Media revenue table shows a " +
+        "Source: Comcast's Q1 2026 8-K, Exhibit 99.1 — the Media revenue table shows a " +
         "$1,420M Milan Cortina Olympics line and a $758M Super Bowl LX line for Q1.",
       value: 1_900,
       tag: "Included in Q1 Actual",
@@ -256,11 +256,10 @@ const MEDIA_BASELINE: SegmentBaseline = {
       label: "Q2 2026 World Cup Revenue",
       description:
         "The Q2 slice of FIFA World Cup revenue (Telemundo Spanish-language broadcast), as " +
-        "reported by Comcast for the quarter. Source: Q2 2026 8-K, Exhibit 99.1 " +
-        "(ex991-6302026.htm): \"Excluding $440 million of incremental revenue from the FIFA " +
-        "World Cup, Media revenue increased 15.6%.\" The remaining tournament weeks land in Q3 " +
-        "— see the Q3 World Cup Residual preset above for that portion, which is still a live " +
-        "driver.",
+        "reported by Comcast for the quarter. Source: Comcast's Q2 2026 8-K, Exhibit 99.1: " +
+        "\"Excluding $440 million of incremental revenue from the FIFA World Cup, Media revenue " +
+        "increased 15.6%.\" The remaining tournament weeks land in Q3 — see the Q3 World Cup " +
+        "Residual preset above for that portion, which is still a live driver.",
       value: 440,
       tag: "Included in Q2 Actual",
     },

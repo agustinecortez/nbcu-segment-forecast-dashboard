@@ -18,7 +18,6 @@ export default function LockedLineDisplay({ line }: LockedLineDisplayProps) {
     <div
       className="mb-4 last:mb-0 rounded-md px-3 py-2"
       style={{ backgroundColor: "var(--color-locked-bg)", border: "1px solid var(--color-locked-border)" }}
-      title={line.description}
     >
       {line.tag && (
         <p
